@@ -1,0 +1,27 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "front gate",
+      "intents": [
+        {
+          "name": "OpenGateIntent",
+          "slots": [],
+          "samples": [
+            "open",
+            "open up",
+            "open it",
+            "open the gate",
+            "toggle",
+            "toggle the gate",
+            "press the button"
+          ]
+        },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.FallbackIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] }
+      ]
+    }
+  }
+}

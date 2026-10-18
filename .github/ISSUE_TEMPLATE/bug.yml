@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible app, widget, bridge, or setup problem
+body:
+  - type: markdown
+    attributes:
+      value: "Do not include API secrets, Tuya local keys, private endpoints, device IDs, or configured app binaries. Use private vulnerability reporting for security issues."
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: Include steps, expected behavior, and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Environment
+      description: Release version, macOS/iOS version, Xcode/Python version, and controller model (no device ID).
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Sanitized diagnostics
+      description: Include relevant errors with credentials and private addresses removed.

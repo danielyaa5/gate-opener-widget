@@ -1,0 +1,95 @@
+name: GateOpenerMac
+options:
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    CODE_SIGN_STYLE: Automatic
+    CURRENT_PROJECT_VERSION: 3
+    MARKETING_VERSION: 1.0.0
+    # Pass DEVELOPMENT_TEAM and your own GATE_BUNDLE_PREFIX when building.
+    GATE_BUNDLE_PREFIX: org.example
+    GATE_APP_GROUP: group.$(GATE_BUNDLE_PREFIX).GateOpener
+    ENABLE_HARDENED_RUNTIME: YES
+targets:
+  GateOpenerMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: ../assets/macOS.xcassets
+      - path: GateOpenerMac
+      - path: ../ios/GateOpener/App/ContentView.swift
+      - path: ../ios/GateOpener/App/SetupView.swift
+      - path: ../ios/GateOpener/Shared
+        excludes:
+          - "LocalConfiguration.swift*"
+    info:
+      path: GateOpenerMac/Info.plist
+      properties:
+        GateAppGroup: $(GATE_APP_GROUP)
+    entitlements:
+      path: GateOpenerMac/GateOpenerMac.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.application-groups:
+          - $(GATE_APP_GROUP)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(GATE_BUNDLE_PREFIX).GateOpenerMac
+        PRODUCT_NAME: Gate Opener
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Gate Opener
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: Connect to your gate bridge to check its status and open the gate.
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
+    dependencies:
+      - target: GateOpenerMacWidget
+        embed: true
+  GateOpenerMacWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: GateOpenerMacWidget
+      - path: ../ios/GateOpener/Shared
+        excludes:
+          - "LocalConfiguration.swift*"
+      - path: ../ios/GateOpenerWidget/GateOpenerWidget.swift
+    entitlements:
+      path: GateOpenerMacWidget/GateOpenerMacWidget.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.network.client: true
+        com.apple.security.application-groups:
+          - $(GATE_APP_GROUP)
+    info:
+      path: GateOpenerMacWidget/Info.plist
+      properties:
+        GateAppGroup: $(GATE_APP_GROUP)
+        CFBundleDisplayName: Gate Opener Widget
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSLocalNetworkUsageDescription: Connect to your gate bridge to open the gate.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(GATE_BUNDLE_PREFIX).GateOpenerMac.widget
+        PRODUCT_NAME: Gate Opener Widget
+        SKIP_INSTALL: YES
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
+schemes:
+  GateOpenerMac:
+    shared: true
+    build:
+      targets:
+        GateOpenerMac: all
+    run:
+      config: Debug

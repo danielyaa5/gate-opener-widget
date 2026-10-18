@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gate Opener</title>
+  <meta name="description" content="Open your Tuya gate from a Mac desktop widget, an iPhone Home Screen widget or Control Center, through a small bridge on your own Mac.">
+  <link rel="icon" href="images/icon.png">
+  <style>
+    :root {
+      --bg: #f7f3ea;
+      --surface: #ffffff;
+      --text: #1d1d1f;
+      --muted: #5f5b53;
+      --line: #e3ddd0;
+      --accent: #2463eb;
+      --accent-text: #ffffff;
+      --code: #efe9dc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16150f;
+        --surface: #201f19;
+        --text: #f3f0e8;
+        --muted: #aaa499;
+        --line: #34322a;
+        --accent: #5b8cff;
+        --accent-text: #0b1020;
+        --code: #2a2821;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 56px 16px 72px; }
+    header { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
+    @media (min-width: 820px) { header { grid-template-columns: 1.05fr 1fr; } }
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .brand img { width: 64px; height: 64px; border-radius: 15px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.12); }
+    .brand span { font-weight: 600; font-size: 20px; }
+    h1 { font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 0 0 16px; letter-spacing: -0.02em; }
+    .lede { color: var(--muted); font-size: 19px; margin: 0 0 28px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .button {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 600;
+      background: var(--accent); color: var(--accent-text);
+    }
+    .button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
+    .demo { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: block; }
+    section { margin-top: 72px; }
+    h2 { font-size: 26px; margin: 0 0 18px; letter-spacing: -0.01em; }
+    .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+    @media (min-width: 720px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+    .card h3 { margin: 0 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    figure { margin: 0; }
+    figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+    .shots { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
+    @media (min-width: 720px) { .shots { grid-template-columns: 1.4fr 1fr; } }
+    .shots img { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; }
+    ol { padding-left: 22px; margin: 0; }
+    li { margin-bottom: 10px; }
+    code { background: var(--code); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
+    .warning { border-left: 3px solid #d08a1c; padding: 4px 0 4px 14px; color: var(--muted); }
+    footer { margin-top: 72px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 20px; }
+    footer a, p a, li a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <div class="brand"><img src="images/icon.png" alt=""><span>Gate Opener</span></div>
+        <h1>Open your gate from your Mac or iPhone.</h1>
+        <p class="lede">A desktop widget, a Home Screen widget and a Control Center button for a Tuya gate controller, through a small bridge that runs on your own Mac. No cloud account in the loop.</p>
+        <div class="actions">
+          <a class="button" href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Download for Mac</a>
+          <a class="button secondary" href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a>
+        </div>
+        <p class="note">Free and open source (MIT). macOS 14 or later, signed and notarized. The iPhone app is built from source.</p>
+      </div>
+      <img class="demo" src="images/demo.gif" alt="Clicking Open / Close in the Mac app, confirming, and the gate pulse being sent">
+    </header>
+
+    <section>
+      <h2>How it works</h2>
+      <div class="grid">
+        <div class="card"><h3>Bridge on your Mac</h3><p>A small Python service on an always-on Mac talks to the gate controller over your LAN with its Tuya local key.</p></div>
+        <div class="card"><h3>Signed requests</h3><p>Every request is signed with your own secret, timestamped and single-use, and reaches the bridge over HTTPS, for example with Tailscale Funnel.</p></div>
+        <div class="card"><h3>One pulse, like a remote</h3><p>Open / Close sends one momentary pulse. Your controller decides whether that opens, closes or stops the gate.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Widgets and app</h2>
+      <div class="shots">
+        <figure><img src="images/mac-app.png" alt="Gate Opener Mac app showing Front Gate, bridge online, and an Open / Close button"><figcaption>The Mac app asks before it sends a pulse.</figcaption></figure>
+        <figure><img src="images/mac-widget.png" alt="Front Gate desktop widget with an Open / Close button"><figcaption>The desktop widget opens the gate with one click.</figcaption></figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Get started</h2>
+      <ol>
+        <li>Set up the bridge on an always-on Mac on the gate's network. The <a href="https://github.com/danielyaa5/gate-opener-widget#set-up-the-bridge">README</a> walks through it.</li>
+        <li>On that Mac, run <code>.venv/bin/python scripts/setup_code.py --url https://your-mac.your-tailnet.ts.net</code> and copy the code.</li>
+        <li>Open Gate Opener, click <strong>Paste</strong> and the app connects. Add the widget from the desktop's Edit Widgets.</li>
+      </ol>
+      <p class="warning">Works with Tuya-based momentary gate controllers that use data point 1. It does not know whether the gate is open; a successful request means the controller accepted the pulse.</p>
+    </section>
+
+    <footer>
+      MIT licensed. Not affiliated with Tuya or Smart Life. <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">Security policy</a>
+    </footer>
+  </main>
+</body>
+</html>
