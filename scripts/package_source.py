@@ -12,17 +12,18 @@ PATTERNS = (
     "gate_bridge/*.py", "alexa_skill/*.py", "alexa_skill/*.json", "tests/*.py", "scripts/*.py", "scripts/*.swift", "launchd/*.template",
     "assets/**/*.json", "assets/**/*.png", ".github/workflows/*.yml",
     ".github/ISSUE_TEMPLATE/*.yml", ".github/PULL_REQUEST_TEMPLATE.md", "docs/*.md", "docs/*.html",
-    "docs/images/*.png", "docs/images/*.gif",
+    "docs/images/*.png", "docs/images/*.gif", "docs/images/*.mp4", "docs/images/*.json",
     "ios/GateOpener/App/*.swift", "ios/GateOpener/Shared/*.swift",
 "ios/GateOpenerWidget/*.swift",
     "ios/GateOpenerWidget/Info.plist", "ios/project.yml", "macos/project.yml",
     "macos/GateOpenerMac/*.swift", "macos/GateOpenerMacWidget/*.swift",
     "macos/GateOpenerMacWidget/Info.plist",
+    "camera/*.cjs", "camera/package.json", "camera/package-lock.json",
 )
 EXCLUDED = "ios/GateOpener/Shared/LocalConfiguration.swift"
 PROJECT_SPECS = ("ios/project.yml", "macos/project.yml")
 SIGNING_FILES = PROJECT_SPECS + ("ios/GateOpener.xcodeproj/project.pbxproj", "macos/GateOpenerMac.xcodeproj/project.pbxproj")
-BINARY_SUFFIXES = {".png", ".gif"}
+BINARY_SUFFIXES = {".png", ".gif", ".mp4"}
 PUBLIC_PREFIX = "org.example"
 PUBLIC_APP_ID = "org.example.GateOpener"
 
@@ -59,7 +60,7 @@ def export_files() -> dict[str, str | bytes]:
     # The private checkout publishes RELEASE.md as the README and keeps its own README.md out
     # of the export; an exported copy, such as the public repository, has only README.md.
     readme = "RELEASE.md" if (ROOT / "RELEASE.md").exists() else "README.md"
-    paths = {ROOT / name for name in ("LICENSE", "VERSION", "CHANGELOG.md", readme, "CONTRIBUTING.md", "SECURITY.md", "requirements.txt", ".gitignore", ".env.example")}
+    paths = {ROOT / name for name in ("LICENSE", "VERSION", "CHANGELOG.md", readme, "CONTRIBUTING.md", "SECURITY.md", "requirements.txt", "requirements-camera.txt", ".gitignore", ".env.example")}
     for pattern in PATTERNS:
         paths.update(ROOT.glob(pattern))
     files = {}

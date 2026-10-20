@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import threading
 import time
 from datetime import datetime, timezone
@@ -12,8 +13,12 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from gate_bridge.auth import AuthenticationError, RequestAuthenticator
+from gate_bridge.auto_close import AutoClosePolicy
+from gate_bridge.away import AwayTripGuard, TagTrackerAwayService
+from gate_bridge.command_lock import CommandLock
 from gate_bridge.config import Config
 from gate_bridge.device import GateBusyError, GateCommandError, GateDevice
+from gate_bridge.position import GatePositionService
 
 
 LOGGER = logging.getLogger("gate_bridge")
@@ -21,7 +26,7 @@ CLIENT_LOGGER = logging.getLogger("gate_bridge.client")
 CLIENT_LOG_PATH = Path.home() / "Library" / "Logs" / "gate-bridge.client.log"
 CLIENT_LOG_BODY_LIMIT = 32768
 CLIENT_LOG_EVENT_LIMIT = 50
-CLIENT_LOG_OPERATIONS = {"open", "status"}
+CLIENT_LOG_OPERATIONS = {"open", "status", "position"}
 CLIENT_LOG_OUTCOMES = {"started", "retrying", "succeeded", "rejected", "failed"}
 DEFAULT_CLIENT = "default"
 ALEXA_CLIENT = "alexa"
@@ -174,6 +179,9 @@ class GateHTTPServer(ThreadingHTTPServer):
             )
         self.idempotency = IdempotencyGuard()
         self.gate = GateDevice(config)
+        self.position = GatePositionService(config.camera_config)
+        self.commands = CommandLock(config.camera_config)
+        self.auto_close_config = config.auto_close_config
         # Do not poll the Tuya controller in the background. This model becomes
         # unreachable after repeated keepalive queries but reliably accepts
         # fresh, nonpersistent sessions when a real request arrives.
@@ -234,13 +242,20 @@ class GateRequestHandler(BaseHTTPRequestHandler):
         if path == "/health":
             self._json(HTTPStatus.OK, {"status": "ok"})
             return
-        if path != "/v1/status":
+        if path not in {"/v1/status", "/v1/position", "/v1/camera"}:
             self._json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
         request_id = self._request_id()
         try:
-            self._authenticate(b"")
+            client = self._authenticate(b"")
+            if path in {"/v1/position", "/v1/camera"}:
+                if client != DEFAULT_CLIENT:
+                    self._json(HTTPStatus.FORBIDDEN, {"error": "camera_access_not_allowed"})
+                    return
+                payload = self.server.position.camera_preview() if path == "/v1/camera" else self.server.position.observe()
+                self._json(HTTPStatus.OK, payload)
+                return
             status = self.server.gate.status()
             LOGGER.info("request_id=%s status succeeded", request_id)
             self._json(HTTPStatus.OK, {"online": True, "device": status})
@@ -256,7 +271,7 @@ class GateRequestHandler(BaseHTTPRequestHandler):
         if path == "/v1/client-log":
             self._receive_client_logs()
             return
-        if path != "/v1/open":
+        if path not in {"/v1/open", "/v1/close-if-open"}:
             self._json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
@@ -266,16 +281,42 @@ class GateRequestHandler(BaseHTTPRequestHandler):
             body = self._body()
             client = self._authenticate(body)
             idempotency_key = parse_idempotency_key(body)
-            if idempotency_key is not None:
-                self.server.idempotency.claim(idempotency_key)
-            self.server.gate.pulse()
+            conditional = path == "/v1/close-if-open"
+            if conditional and client != DEFAULT_CLIENT:
+                self._json(HTTPStatus.FORBIDDEN, {"error": "auto_close_access_not_allowed"})
+                return
+            with self.server.commands.acquire():
+                if conditional and idempotency_key is None:
+                    raise ValueError("Conditional close requires an idempotency key")
+                if idempotency_key is not None:
+                    self.server.idempotency.claim(idempotency_key)
+                if conditional:
+                    expected_since = json.loads(body).get("open_since")
+                    if type(expected_since) not in (int, float) or not math.isfinite(expected_since):
+                        raise ValueError("Invalid open duration")
+                    policy = AutoClosePolicy.load(self.server.auto_close_config)
+                    observation = self.server.position.observe()
+                    away = TagTrackerAwayService().observe(policy.away) if policy.away else None
+                    now = time.time()
+                    trigger = policy.trigger(observation, now, away)
+                    if (trigger is None or
+                            abs(float(observation["open_since"]) - expected_since) > 0.001):
+                        self._json(HTTPStatus.OK, {"success": False, "result": "skipped", "reason": "conditions_changed"})
+                        return
+                    trip = AwayTripGuard(self.server.auto_close_config.with_suffix(".state.trip.json"))
+                    if not trip.allow(trigger, policy.away, away, now, idempotency_key):
+                        self._json(HTTPStatus.OK, {"success": False, "result": "skipped", "reason": "away_trip_already_used"})
+                        return
+                self.server.position.invalidate()
+                self.server.gate.pulse()
             # The controller acknowledged the relay pulse. Nothing here
             # observes the gate itself, so movement is never claimed.
             LOGGER.info(
-                "request_id=%s client=%s open succeeded "
+                "request_id=%s client=%s operation=%s succeeded "
                 "result=command_accepted movement=unverified",
                 request_id,
                 client,
+                "auto_close" if conditional else "open",
             )
             self._json(
                 HTTPStatus.OK,

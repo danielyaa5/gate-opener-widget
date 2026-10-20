@@ -22,3 +22,4 @@ dist/
 *.xcarchive/
 *.ipa
 *.app/
+camera/node_modules/

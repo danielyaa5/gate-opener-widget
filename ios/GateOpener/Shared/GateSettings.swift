@@ -46,12 +46,29 @@ enum GateSettings {
         return group
     }
 
+    private static var keychainGroup: String? {
+        guard let group = Bundle.main.object(forInfoDictionaryKey: "GateKeychainAccessGroup") as? String,
+              !group.isEmpty, !group.contains("$(") else { return appGroup }
+        return group
+    }
+
     static func load() -> GateConnection? {
         if let data = keychainData(), let connection = try? JSONDecoder().decode(GateConnection.self, from: data) {
             return connection
         }
-        guard let data = fallbackDefaults?.data(forKey: fallbackKey) else { return nil }
-        return try? JSONDecoder().decode(GateConnection.self, from: data)
+        // Preserve settings when an older local build gains an app group or
+        // proper signing. Move its fallback into the Keychain when possible.
+        guard let data = fallbackDefaults?.data(forKey: fallbackKey)
+                ?? UserDefaults.standard.data(forKey: fallbackKey),
+              let connection = try? JSONDecoder().decode(GateConnection.self, from: data) else { return nil }
+        let status = saveToKeychain(data)
+        if status == errSecSuccess {
+            fallbackDefaults?.removeObject(forKey: fallbackKey)
+            UserDefaults.standard.removeObject(forKey: fallbackKey)
+        } else if status == errSecMissingEntitlement {
+            fallbackDefaults?.set(data, forKey: fallbackKey)
+        }
+        return connection
     }
 
     static func save(_ connection: GateConnection) throws {
@@ -118,21 +135,25 @@ enum GateSettings {
         appGroup.flatMap(UserDefaults.init(suiteName:)) ?? .standard
     }
 
-    private static func baseQuery() -> [String: Any] {
+    private static func baseQuery(account itemAccount: String = account) -> [String: Any] {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
+            kSecAttrAccount as String: itemAccount,
             kSecUseDataProtectionKeychain as String: true,
         ]
-        if let appGroup {
-            query[kSecAttrAccessGroup as String] = appGroup
+        if let keychainGroup {
+            query[kSecAttrAccessGroup as String] = keychainGroup
         }
         return query
     }
 
     private static func keychainData() -> Data? {
-        var query = baseQuery()
+        sharedData(account: account)
+    }
+
+    static func sharedData(account: String) -> Data? {
+        var query = baseQuery(account: account)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var result: CFTypeRef?
@@ -141,13 +162,18 @@ enum GateSettings {
     }
 
     private static func saveToKeychain(_ data: Data) -> OSStatus {
+        saveSharedData(data, account: account)
+    }
+
+    static func saveSharedData(_ data: Data, account: String) -> OSStatus {
         let attributes: [String: Any] = [
             kSecValueData as String: data,
             // The Lock Screen control may run while the phone is locked, after first unlock.
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
         ]
-        let status = SecItemUpdate(baseQuery() as CFDictionary, attributes as CFDictionary)
+        let query = baseQuery(account: account)
+        let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         guard status == errSecItemNotFound else { return status }
-        return SecItemAdd(baseQuery().merging(attributes) { $1 } as CFDictionary, nil)
+        return SecItemAdd(query.merging(attributes) { $1 } as CFDictionary, nil)
     }
 }

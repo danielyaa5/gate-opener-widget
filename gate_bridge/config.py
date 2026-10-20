@@ -30,6 +30,8 @@ class Config:
     pulse_seconds: float = 0.5
     cooldown_seconds: float = 3.0
     alexa_api_secret: str | None = None
+    camera_config: Path | None = None
+    auto_close_config: Path | None = None
 
     @classmethod
     def from_env(cls, path: Path = PROJECT_ROOT / ".env") -> "Config":
@@ -71,4 +73,6 @@ class Config:
             pulse_seconds=float(values.get("GATE_PULSE_SECONDS", "0.5")),
             cooldown_seconds=float(values.get("GATE_COOLDOWN_SECONDS", "3")),
             alexa_api_secret=alexa_secret,
+            camera_config=Path(values["GATE_CAMERA_CONFIG"]).expanduser() if values.get("GATE_CAMERA_CONFIG") else None,
+            auto_close_config=Path(values["GATE_AUTO_CLOSE_CONFIG"]).expanduser() if values.get("GATE_AUTO_CLOSE_CONFIG") else None,
         )

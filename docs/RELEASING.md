@@ -5,6 +5,8 @@ history. Each release has two downloads: the notarized Mac app and the source ZI
 
 1. Update `VERSION`, `CHANGELOG.md`, and `MARKETING_VERSION` (and bump
    `CURRENT_PROJECT_VERSION`) in both project specs.
+   Update the website's download version and remove its source-build notice when
+   the downloadable release includes those features.
 2. Build the Mac download. This needs a paid Apple Developer team signed in to Xcode; signing
    and the notarization upload go through that account, so no password or key is handled here:
 
@@ -22,6 +24,9 @@ history. Each release has two downloads: the notarized Mac app and the source ZI
    didn't test.
 4. Check the signed Mac app and its desktop widget against `scripts/demo_bridge.py`. Physical
    gate tests are done by a person at the gate; no script should actuate hardware.
+   Regenerate the README screenshots and demo with
+   `.venv/bin/python scripts/generate_demo_media.py`, inspect the images and video,
+   then rerun release validation. See [DEMO_MEDIA.md](DEMO_MEDIA.md).
 5. Copy the exported files into the public repository, review the diff, and commit. Never copy
    `.env`, `LocalConfiguration.swift`, logs, Xcode archives or build products.
 6. After CI passes, create the release tag matching `VERSION` and attach

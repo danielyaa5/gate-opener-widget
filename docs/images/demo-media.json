@@ -1,0 +1,26 @@
+{
+  "description": "Offscreen renders of production SwiftUI views with fictional camera images and scripted states.",
+  "duration_seconds": 15.5,
+  "video_dimensions": [
+    800,
+    1840
+  ],
+  "sources": {
+    "ios/GateOpener/App/ContentView.swift": "7832f6ff94a48e315581005abb883a0ce2ee655f54eb6654a2e0813eee218879",
+    "ios/GateOpenerWidget/GateOpenerWidget.swift": "b33acbb9f11b088b0eada8d1316e8dbe0b09032ca1c0b312dffd33f59db5c22f",
+    "ios/GateOpener/Shared/GatePosition.swift": "6b443dd16de9bb87fa3bdf4b957647a1289dee2fb6b9613cd51d8345d048ce47",
+    "ios/GateOpener/Shared/GateActionFeedback.swift": "8ed017ce5da9a21c3e4f41df9c295e02f4f19ea2d8777ce8c1ad8be27258bf8b",
+    "ios/GateOpener/Shared/GateSettings.swift": "6caaf5ba98d6d871dde2fdeda1505c4f6aa30784b8763d866dbe261d3baa08d8",
+    "ios/GateOpener/Shared/GateAPIClient.swift": "31bd758b44e83e47b4cd11a434160d579d88562bd56bac330ce19530e643be75",
+    "ios/GateOpener/Shared/OpenGateIntent.swift": "47abba5c2f3f52e20af0b4665bfb9f383dc44ea1a2ae189ee66af12718a6820b",
+    "scripts/generate_demo_media.swift": "d33505c47e9685096a37bd1ce0fae5972a767c3be00e325f0b43d61c0bde4f45",
+    "scripts/generate_demo_media.py": "7b3fceed4a8637900a0ee9b289e832a71655b9dddda719c0660a0fbf03bd6fbf",
+    "scripts/demo_camera.py": "493139e4690b62e866177f6f0cb9936e38bc1431d9a8d5043fdf1b258e6a0d7e"
+  },
+  "outputs": {
+    "mac-app.png": "f7d96295cb7ce3aa4183eff9f681917cb41be73144fe566077675c124ca5697c",
+    "mac-widget.png": "fe24a98e4de1b53ced6b8f69184f1f39791fa526f0b08bf0aa6a314e5d998531",
+    "demo.gif": "ec469467983602d7f9016ad667529a58e6c58200b0e78bf1a3cc2c91e3f85a11",
+    "demo.mp4": "68be4f6345e9c5f7ad2e8b0e9e993f9b7f6022809c526c0c91a40678032743ac"
+  }
+}

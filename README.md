@@ -14,12 +14,17 @@ through a small bridge that runs on your own Mac.</p>
   <a href="https://danielyaa5.github.io/gate-opener-widget/">Website</a>
 </p>
 
-<p align="center"><img src="docs/images/demo.gif" width="440" alt="Clicking Open / Close in the Mac app, confirming, and the pulse being sent"></p>
+The demo below shows the latest source build. Camera features and automatic
+closing are available from source; the signed Mac download is the earlier 1.0.0 release.
+
+<p align="center"><a href="docs/images/demo.mp4"><img src="docs/images/demo.gif" width="400" alt="Simulated app demo showing camera-confirmed Closed and Open states"></a></p>
+
+<p align="center"><a href="docs/images/demo.mp4">Watch the demo video</a> · Simulated gate and camera data</p>
 
 <p align="center">
-  <img src="docs/images/mac-app.png" width="300" alt="Mac app: Front Gate, bridge online, Open / Close button">
+  <img src="docs/images/mac-app.png" width="300" alt="Mac app with camera status, latest picture, Ring Live View link and Open Gate button; simulated data">
   &nbsp;&nbsp;
-  <img src="docs/images/mac-widget.png" width="180" alt="Mac desktop widget with an Open / Close button">
+  <img src="docs/images/mac-widget.png" width="180" alt="Mac desktop widget with a Closed observation and Open Gate button; simulated data">
 </p>
 
 ## How it works
@@ -29,11 +34,23 @@ through a small bridge that runs on your own Mac.</p>
 - **Signed requests.** The apps sign every request with your own API secret, with a timestamp
   and a single-use nonce, and reach the bridge over HTTPS (for example with Tailscale Funnel).
 - **One pulse, like a remote.** Open / Close sends one momentary pulse on Tuya data point 1.
-  Your controller decides whether that opens, closes or stops the gate. The apps never know or
-  guess the gate's position: a successful request means the controller accepted the pulse.
+  Your controller decides whether that opens, closes or stops the gate. A successful request
+  means the controller accepted the pulse. Optional Ring camera observations show the gate's
+  position separately, with the time of the image.
 
 Works with Tuya-based momentary gate controllers that use data point 1. It is not a universal
 gate driver; check your controller's data points and wiring before connecting it to a gate.
+
+Optional [Ring camera observations](docs/CAMERA.md) show open, closed or unclear
+on both widgets, with a read-only refresh button and the camera observation time.
+Day and night examples are calibrated separately and processed locally on the bridge.
+Both apps also show the latest picture with its original capture time and a Ring
+Live View link. Older pictures are labeled separately from fresh gate observations.
+The Mac app quits when its last window closes; the desktop widget continues independently.
+
+The screenshots and video use the production views with fictional camera images
+and scripted states. Regenerate them with
+`.venv/bin/python scripts/generate_demo_media.py`; see [the media guide](docs/DEMO_MEDIA.md).
 
 ## Requirements
 
@@ -132,7 +149,7 @@ Mac app and widget talk to the bridge directly and don't need an iPhone.
 ### iPhone (build from source)
 
 There is no App Store build. Build and install it with your own Apple Developer team and a
-reverse-DNS prefix you control (it names the bundle IDs and the app group the widget shares):
+reverse-DNS prefix you control (it names the bundle IDs and the Keychain group the widget shares):
 
 ```sh
 xcodegen generate --spec ios/project.yml

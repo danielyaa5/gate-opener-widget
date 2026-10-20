@@ -56,6 +56,11 @@ struct GateAPIClient: Sendable {
                 let request = signedRequest(path: "/v1/open", method: "POST", requestID: requestID)
                 let (data, response) = try await Self.session.data(for: request)
                 try validate(data: data, response: response)
+                guard let result = try? JSONDecoder().decode(OpenResponse.self, from: data),
+                      result.success,
+                      result.result == nil || result.result == "command_accepted" else {
+                    throw GateAPIError.invalidResponse
+                }
                 Self.logger.notice("Open succeeded request=\(requestID, privacy: .public)")
                 await record(operation: "open", outcome: "succeeded", requestID: requestID)
                 await uploadPendingDiagnostics()
@@ -111,6 +116,10 @@ struct GateAPIClient: Sendable {
                 )
                 let (data, response) = try await Self.session.data(for: request)
                 try validate(data: data, response: response)
+                guard let status = try? JSONDecoder().decode(StatusResponse.self, from: data),
+                      status.online else {
+                    throw GateAPIError.invalidResponse
+                }
                 Self.logger.notice("Status check succeeded request=\(requestID, privacy: .public)")
                 await record(operation: "status", outcome: "succeeded", requestID: requestID)
                 await uploadPendingDiagnostics()
@@ -140,6 +149,30 @@ struct GateAPIClient: Sendable {
                 try await Task.sleep(nanoseconds: delay * 1_000_000_000)
             }
         }
+    }
+
+    func gatePosition() async throws -> GatePositionObservation {
+        let requestID = makeRequestID()
+        await record(operation: "position", outcome: "started", requestID: requestID)
+        do {
+            let request = signedRequest(path: "/v1/position", method: "GET", requestID: requestID, timeout: 28)
+            let (data, response) = try await Self.session.data(for: request)
+            try validate(data: data, response: response)
+            let observation = try JSONDecoder().decode(GatePositionObservation.self, from: data)
+            await record(operation: "position", outcome: "succeeded", requestID: requestID)
+            return observation
+        } catch {
+            await recordFailure(operation: "position", requestID: requestID, error: error)
+            throw error
+        }
+    }
+
+    func cameraPreview() async throws -> GateCameraPreview {
+        let request = signedRequest(path: "/v1/camera", method: "GET", requestID: makeRequestID(), timeout: 12)
+        let (data, response) = try await Self.session.data(for: request)
+        try validate(data: data, response: response)
+        guard data.count <= 7_100_000 else { throw GateAPIError.invalidResponse }
+        return try JSONDecoder().decode(GateCameraPreview.self, from: data)
     }
 
     private func signedRequest(
@@ -381,6 +414,15 @@ private actor GateDiagnosticStore {
 
 private struct ErrorPayload: Decodable {
     let error: String
+}
+
+private struct OpenResponse: Decodable {
+    let success: Bool
+    let result: String?
+}
+
+private struct StatusResponse: Decodable {
+    let online: Bool
 }
 
 private extension Digest {

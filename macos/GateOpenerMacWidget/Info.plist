@@ -20,8 +20,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>GateAppGroup</key>
-	<string>$(GATE_APP_GROUP)</string>
+	<key>GateKeychainAccessGroup</key>
+	<string>$(GATE_KEYCHAIN_GROUP)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

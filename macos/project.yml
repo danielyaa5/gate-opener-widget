@@ -6,11 +6,11 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     CODE_SIGN_STYLE: Automatic
-    CURRENT_PROJECT_VERSION: 3
+    CURRENT_PROJECT_VERSION: 15
     MARKETING_VERSION: 1.0.0
     # Pass DEVELOPMENT_TEAM and your own GATE_BUNDLE_PREFIX when building.
     GATE_BUNDLE_PREFIX: org.example
-    GATE_APP_GROUP: group.$(GATE_BUNDLE_PREFIX).GateOpener
+    GATE_KEYCHAIN_GROUP: $(AppIdentifierPrefix)$(GATE_BUNDLE_PREFIX).GateOpener.shared
     ENABLE_HARDENED_RUNTIME: YES
 targets:
   GateOpenerMac:
@@ -27,14 +27,14 @@ targets:
     info:
       path: GateOpenerMac/Info.plist
       properties:
-        GateAppGroup: $(GATE_APP_GROUP)
+        GateKeychainAccessGroup: $(GATE_KEYCHAIN_GROUP)
     entitlements:
       path: GateOpenerMac/GateOpenerMac.entitlements
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
-        com.apple.security.application-groups:
-          - $(GATE_APP_GROUP)
+        keychain-access-groups:
+          - $(GATE_KEYCHAIN_GROUP)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(GATE_BUNDLE_PREFIX).GateOpenerMac
@@ -64,12 +64,12 @@ targets:
       properties:
         com.apple.security.app-sandbox: true
         com.apple.security.network.client: true
-        com.apple.security.application-groups:
-          - $(GATE_APP_GROUP)
+        keychain-access-groups:
+          - $(GATE_KEYCHAIN_GROUP)
     info:
       path: GateOpenerMacWidget/Info.plist
       properties:
-        GateAppGroup: $(GATE_APP_GROUP)
+        GateKeychainAccessGroup: $(GATE_KEYCHAIN_GROUP)
         CFBundleDisplayName: Gate Opener Widget
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)

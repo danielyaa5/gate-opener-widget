@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gate Opener</title>
-  <meta name="description" content="Open your Tuya gate from a Mac desktop widget, an iPhone Home Screen widget or Control Center, through a small bridge on your own Mac.">
+  <meta name="description" content="Control your Tuya gate from Mac or iPhone. Optional Ring snapshots add Open/Closed status, the latest picture and a Live View link.">
   <link rel="icon" href="images/icon.png">
   <style>
     :root {
@@ -52,7 +52,9 @@
     }
     .button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
     .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
-    .demo { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: block; }
+    .demo { width: 100%; max-height: 700px; object-fit: contain; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: block; }
+    .release-note { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .demo-caption { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
     section { margin-top: 72px; }
     h2 { font-size: 26px; margin: 0 0 18px; letter-spacing: -0.01em; }
     .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
@@ -65,6 +67,8 @@
     .shots { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
     @media (min-width: 720px) { .shots { grid-template-columns: 1.4fr 1fr; } }
     .shots img { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; }
+    .shots figure:first-child img { max-height: 820px; object-fit: contain; background: var(--surface); }
+    .shots figure:last-child img { max-width: 260px; }
     ol { padding-left: 22px; margin: 0; }
     li { margin-bottom: 10px; }
     code { background: var(--code); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
@@ -78,15 +82,22 @@
     <header>
       <div>
         <div class="brand"><img src="images/icon.png" alt=""><span>Gate Opener</span></div>
-        <h1>Open your gate from your Mac or iPhone.</h1>
-        <p class="lede">A desktop widget, a Home Screen widget and a Control Center button for a Tuya gate controller, through a small bridge that runs on your own Mac. No cloud account in the loop.</p>
+        <h1>Your gate, at a glance.</h1>
+        <p class="lede">Control your Tuya gate from Mac or iPhone. Optional Ring camera checks show Open, Closed or Unclear, the latest picture and a link to Live View.</p>
         <div class="actions">
-          <a class="button" href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Download for Mac</a>
-          <a class="button secondary" href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a>
+          <a class="button" href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Download Mac 1.0.0</a>
+          <a class="button secondary" href="https://github.com/danielyaa5/gate-opener-widget#mac-from-source">Build latest source</a>
         </div>
         <p class="note">Free and open source (MIT). macOS 14 or later, signed and notarized. The iPhone app is built from source.</p>
+        <p class="note release-note">The demo shows the latest source build. Camera pictures, camera-based actions and automatic closing are available from source; the signed Mac download is the earlier 1.0.0 release.</p>
       </div>
-      <img class="demo" src="images/demo.gif" alt="Clicking Open / Close in the Mac app, confirming, and the gate pulse being sent">
+      <figure>
+        <video class="demo" controls playsinline preload="metadata" poster="images/mac-app.png" width="800" height="1840" aria-label="Gate Opener demo using simulated gate and camera states">
+          <source src="images/demo.mp4" type="video/mp4">
+          <a href="images/demo.mp4">Watch the demo video</a>
+        </video>
+        <figcaption class="demo-caption">Production app views with simulated camera data. No real gate or private footage. <a href="images/demo.mp4">Download the video</a>.</figcaption>
+      </figure>
     </header>
 
     <section>
@@ -99,10 +110,20 @@
     </section>
 
     <section>
+      <h2>In the latest source build</h2>
+      <div class="grid">
+        <div class="card"><h3>See the latest picture</h3><p>The apps show the camera image and its original capture time. Older pictures are labeled; an unclear view stays unclear.</p></div>
+        <div class="card"><h3>Open Ring Live View</h3><p>Jump from the app to the configured camera in Ring. Camera credentials stay on your bridge Mac.</p></div>
+        <div class="card"><h3>Optional closing rules</h3><p>Use an overnight timeout or fresh TagTracker distance evidence. A close requires a fresh, confirmed Open observation; the distance rule attempts only once until a confirmed return Home.</p></div>
+      </div>
+      <p class="note">The Mac app also quits when its last window closes, removing its Dock icon. The desktop widget and bridge services continue independently.</p>
+    </section>
+
+    <section>
       <h2>Widgets and app</h2>
       <div class="shots">
-        <figure><img src="images/mac-app.png" alt="Gate Opener Mac app showing Front Gate, bridge online, and an Open / Close button"><figcaption>The Mac app asks before it sends a pulse.</figcaption></figure>
-        <figure><img src="images/mac-widget.png" alt="Front Gate desktop widget with an Open / Close button"><figcaption>The desktop widget opens the gate with one click.</figcaption></figure>
+        <figure><img src="images/mac-app.png" alt="Gate Opener with latest camera picture and Ring link; simulated data"><figcaption>The Mac app asks before it sends a pulse. Simulated camera data shown.</figcaption></figure>
+        <figure><img src="images/mac-widget.png" alt="Desktop widget showing Closed and an Open Gate button; simulated data"><figcaption>The desktop widget sends a command with one click.</figcaption></figure>
       </div>
     </section>
 
@@ -113,11 +134,11 @@
         <li>On that Mac, run <code>.venv/bin/python scripts/setup_code.py --url https://your-mac.your-tailnet.ts.net</code> and copy the code.</li>
         <li>Open Gate Opener, click <strong>Paste</strong> and the app connects. Add the widget from the desktop's Edit Widgets.</li>
       </ol>
-      <p class="warning">Works with Tuya-based momentary gate controllers that use data point 1. It does not know whether the gate is open; a successful request means the controller accepted the pulse.</p>
+      <p class="warning">Works with Tuya-based momentary gate controllers that use data point 1. An accepted pulse is not proof of movement. Optional camera observations can be unclear or delayed; keep the gate's own safety sensors working.</p>
     </section>
 
     <footer>
-      MIT licensed. Not affiliated with Tuya or Smart Life. <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">Security policy</a>
+      MIT licensed. Not affiliated with Tuya, Smart Life or Ring. <a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/DEMO_MEDIA.md">Regenerate the demo</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">Security policy</a>
     </footer>
   </main>
 </body>

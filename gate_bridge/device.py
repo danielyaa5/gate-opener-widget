@@ -76,6 +76,32 @@ class GateDevice:
         if isinstance(result, dict) and "Error" in result:
             raise GateCommandError(f"Gate {action} failed: {result['Error']}")
 
+    def _validate_command(self, result: object, action: str) -> None:
+        self._raise_for_error(result, action)
+        # TinyTuya can return None for both an empty acknowledgement and a
+        # missing response. Only a zero return code confirms the empty ACK.
+        return_code = getattr(self._device, "cmd_retcode", None)
+        LOGGER.info("Gate %s response type=%s return_code=%s", action, type(result).__name__, return_code)
+        if return_code is not None and return_code != 0:
+            raise GateCommandError(f"Gate {action} rejected by controller (code {return_code})")
+        if result is None and return_code == 0:
+            return
+        if not isinstance(result, dict) or not result or result.get("success") is False:
+            raise GateCommandError(
+                f"Gate {action} was not confirmed. Check the gate before trying again."
+            )
+
+    def _command(self, value: bool, action: str) -> None:
+        try:
+            result = self._device.set_value(1, value)
+            self._validate_command(result, action)
+        except GateCommandError:
+            raise
+        except Exception as exc:
+            raise GateCommandError(
+                f"Gate {action} was not confirmed. Check the gate before trying again."
+            ) from exc
+
     def status(self) -> dict[str, object]:
         with self._device_lock:
             # TinyTuya device instances can become unusable even when their
@@ -158,15 +184,13 @@ class GateDevice:
                 # even if its response was lost.
                 self._replace_device_locked()
                 try:
-                    result = self._device.set_value(1, True)
-                    self._raise_for_error(result, "activation")
+                    self._command(True, "activation")
                     activated = True
                     self._last_pulse = now
                     self._sleep(self._config.pulse_seconds)
                 finally:
                     # Always issue a release. This is also safe if activation failed.
-                    release = self._device.set_value(1, False)
-                    self._raise_for_error(release, "release")
+                    self._command(False, "release")
         finally:
             self._pulse_lock.release()
 

@@ -1,0 +1,9 @@
+{
+  "name": "gate-camera-snapshots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Optional Ring snapshot reader for gate position checks",
+  "dependencies": {
+    "ring-client-api": "11.8.1"
+  }
+}

@@ -9,8 +9,8 @@ settings:
     CODE_SIGN_STYLE: Automatic
     # Pass DEVELOPMENT_TEAM and your own GATE_BUNDLE_PREFIX when building.
     GATE_BUNDLE_PREFIX: org.example
-    GATE_APP_GROUP: group.$(GATE_BUNDLE_PREFIX).GateOpener
-    CURRENT_PROJECT_VERSION: 6
+    GATE_KEYCHAIN_GROUP: $(AppIdentifierPrefix)$(GATE_BUNDLE_PREFIX).GateOpener.shared
+    CURRENT_PROJECT_VERSION: 17
     MARKETING_VERSION: 1.0.0
 targets:
   GateOpener:
@@ -25,12 +25,12 @@ targets:
     info:
       path: GateOpener/App/Info.plist
       properties:
-        GateAppGroup: $(GATE_APP_GROUP)
+        GateKeychainAccessGroup: $(GATE_KEYCHAIN_GROUP)
     entitlements:
       path: GateOpener/App/GateOpener.entitlements
       properties:
-        com.apple.security.application-groups:
-          - $(GATE_APP_GROUP)
+        keychain-access-groups:
+          - $(GATE_KEYCHAIN_GROUP)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(GATE_BUNDLE_PREFIX).GateOpener
@@ -57,12 +57,12 @@ targets:
     entitlements:
       path: GateOpenerWidget/GateOpenerWidget.entitlements
       properties:
-        com.apple.security.application-groups:
-          - $(GATE_APP_GROUP)
+        keychain-access-groups:
+          - $(GATE_KEYCHAIN_GROUP)
     info:
       path: GateOpenerWidget/Info.plist
       properties:
-        GateAppGroup: $(GATE_APP_GROUP)
+        GateKeychainAccessGroup: $(GATE_KEYCHAIN_GROUP)
         CFBundleDisplayName: Gate Opener Widget
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)

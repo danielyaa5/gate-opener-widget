@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Connects the app and its widget to a bridge. The connection is saved to the
-/// Keychain and shared with the widget through the app group.
+/// Keychain and shared with the widget through a Keychain access group.
 struct SetupView: View {
     var existing: GateConnection?
     var onSave: (GateConnection?) -> Void
@@ -9,31 +9,43 @@ struct SetupView: View {
     @State private var urlString = ""
     @State private var secret = ""
     @State private var errorMessage: String?
+    @State private var showManualEntry = false
 
     var body: some View {
         Form {
+            Section {
+                Label("Connect your gate", systemImage: "link.circle.fill")
+                    .font(.title3.weight(.semibold))
+                Text("Paste the setup code from your bridge Mac to connect this app and its widget.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+
             Section {
                 PasteButton(payloadType: String.self) { strings in
                     guard let code = strings.first else { return }
                     Task { @MainActor in apply(setupCode: code) }
                 }
                 .labelStyle(.titleAndIcon)
+                .controlSize(.large)
             } header: {
                 Text("Setup code")
             } footer: {
-                Text("On the bridge Mac, run `.venv/bin/python scripts/setup_code.py --url https://…` and copy the code it prints.")
+                Text("Your connection is saved securely on this device.")
             }
 
-            Section("Or enter manually") {
-                TextField("Bridge URL", text: $urlString, prompt: Text(verbatim: "https://your-mac.your-tailnet.ts.net"))
-                    .textContentType(.URL)
-                    .autocorrectionDisabled()
-                    #if os(iOS)
-                    .keyboardType(.URL)
-                    .textInputAutocapitalization(.never)
-                    #endif
-                SecureField("API secret", text: $secret, prompt: Text("GATE_API_SECRET from .env"))
-                    .autocorrectionDisabled()
+            Section {
+                DisclosureGroup("Connection details", isExpanded: $showManualEntry) {
+                    TextField("Bridge URL", text: $urlString, prompt: Text(verbatim: "https://your-bridge.example"))
+                        .textContentType(.URL)
+                        .autocorrectionDisabled()
+                        #if os(iOS)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        #endif
+                    SecureField("Connection key", text: $secret, prompt: Text("Paste your connection key"))
+                        .autocorrectionDisabled()
+                }
             }
 
             if let errorMessage {
@@ -42,10 +54,10 @@ struct SetupView: View {
             }
 
             Section {
-                Button("Save") { save() }
+                Button("Save Connection") { save() }
                     .disabled(urlString.isEmpty || secret.isEmpty)
                 if existing != nil {
-                    Button("Remove Bridge", role: .destructive) {
+                    Button("Disconnect Gate", role: .destructive) {
                         GateSettings.clear()
                         onSave(nil)
                     }
@@ -53,7 +65,7 @@ struct SetupView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Bridge")
+        .navigationTitle(existing == nil ? "Set Up Gate" : "Connection")
         .onAppear {
             if let existing, urlString.isEmpty {
                 urlString = existing.bridgeURL.absoluteString

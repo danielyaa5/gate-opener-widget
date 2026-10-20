@@ -32,9 +32,41 @@ struct OpenGateIntent: AppIntent {
         defer { GateExtensionRefresh.request() }
         // A read-only preflight safely warms the widget extension's DNS/TLS
         // connection. The state-changing open request is still sent once.
-        let client = try GateAPIClient.configured()
-        _ = try await client.isOnline()
-        try await client.openGate()
-        return .result(dialog: "Gate activated")
+        GateActionFeedback.save(.sending, message: "Sending…")
+        GateExtensionRefresh.request()
+        do {
+            let client = try GateAPIClient.configured()
+            _ = try await client.isOnline()
+            GatePositionStore.save(.unknown("movement"))
+            GateExtensionRefresh.request()
+            try await client.openGate()
+            GateActionFeedback.save(.accepted, message: "Command sent. Refresh to check the gate.")
+            return .result(dialog: "Command sent. Refresh to check the gate.")
+        } catch {
+            GateActionFeedback.save(.failed, message: error.localizedDescription)
+            throw error
+        }
+    }
+}
+
+struct RefreshGateStatusIntent: AppIntent {
+    static let title: LocalizedStringResource = "Check Gate Status"
+    static let description = IntentDescription("Checks the gate camera without moving the gate.")
+    static let openAppWhenRun = false
+
+    #if os(iOS)
+    @available(iOS 27.0, *)
+    static let allowedExecutionTargets: IntentExecutionTargets = .main
+    #endif
+
+    func perform() async throws -> some IntentResult {
+        do {
+            let observation = try await GateAPIClient.configured().gatePosition()
+            GatePositionStore.save(observation)
+        } catch {
+            GatePositionStore.save(.unknown("camera_unavailable"))
+        }
+        GateExtensionRefresh.request()
+        return .result()
     }
 }
