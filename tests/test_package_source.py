@@ -50,6 +50,8 @@ class SourcePackageTests(unittest.TestCase):
         self.assertIn('scripts/generate_demo_media.swift', files)
         self.assertIn('scripts/demo_camera.py', files)
         self.assertIn('docs/DEMO_MEDIA.md', files)
+        for name in ('elite-operator.jpg', 'elite-control-board.jpg'):
+            self.assertTrue(files['docs/images/' + name].startswith(b'\xff\xd8'))
         self.assertTrue(files['assets/iOS.xcassets/AppIcon.appiconset/icon.png'].startswith(b'\x89PNG'))
 
     def test_export_refuses_configured_credentials(self):

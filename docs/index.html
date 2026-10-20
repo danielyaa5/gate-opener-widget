@@ -3,143 +3,121 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gate Opener</title>
-  <meta name="description" content="Control your Tuya gate from Mac or iPhone. Optional Ring snapshots add Open/Closed status, the latest picture and a Live View link.">
+  <title>A widget for my gate · Daniel Yakobian</title>
+  <meta name="description" content="Build notes on connecting a Wi-Fi controller to my gate, adding Mac and iPhone widgets, and checking its position with Ring snapshots.">
   <link rel="icon" href="images/icon.png">
   <style>
-    :root {
-      --bg: #f7f3ea;
-      --surface: #ffffff;
-      --text: #1d1d1f;
-      --muted: #5f5b53;
-      --line: #e3ddd0;
-      --accent: #2463eb;
-      --accent-text: #ffffff;
-      --code: #efe9dc;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #16150f;
-        --surface: #201f19;
-        --text: #f3f0e8;
-        --muted: #aaa499;
-        --line: #34322a;
-        --accent: #5b8cff;
-        --accent-text: #0b1020;
-        --code: #2a2821;
-      }
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font: 17px/1.55 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-    }
-    main { max-width: 980px; margin: 0 auto; padding: 56px 16px 72px; }
-    header { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
-    @media (min-width: 820px) { header { grid-template-columns: 1.05fr 1fr; } }
-    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
-    .brand img { width: 64px; height: 64px; border-radius: 15px; box-shadow: 0 2px 10px rgb(0 0 0 / 0.12); }
-    .brand span { font-weight: 600; font-size: 20px; }
-    h1 { font-size: clamp(34px, 5vw, 48px); line-height: 1.08; margin: 0 0 16px; letter-spacing: -0.02em; }
-    .lede { color: var(--muted); font-size: 19px; margin: 0 0 28px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .button {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 600;
-      background: var(--accent); color: var(--accent-text);
-    }
-    .button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); }
-    .note { color: var(--muted); font-size: 14px; margin-top: 12px; }
-    .demo { width: 100%; max-height: 700px; object-fit: contain; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); display: block; }
-    .release-note { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-    .demo-caption { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
-    section { margin-top: 72px; }
-    h2 { font-size: 26px; margin: 0 0 18px; letter-spacing: -0.01em; }
-    .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
-    @media (min-width: 720px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
-    .card h3 { margin: 0 0 6px; font-size: 17px; }
-    .card p { margin: 0; color: var(--muted); font-size: 15px; }
-    figure { margin: 0; }
-    figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
-    .shots { display: grid; gap: 24px; grid-template-columns: 1fr; align-items: start; }
-    @media (min-width: 720px) { .shots { grid-template-columns: 1.4fr 1fr; } }
-    .shots img { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; }
-    .shots figure:first-child img { max-height: 820px; object-fit: contain; background: var(--surface); }
-    .shots figure:last-child img { max-width: 260px; }
-    ol { padding-left: 22px; margin: 0; }
-    li { margin-bottom: 10px; }
-    code { background: var(--code); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
-    .warning { border-left: 3px solid #d08a1c; padding: 4px 0 4px 14px; color: var(--muted); }
-    footer { margin-top: 72px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 20px; }
-    footer a, p a, li a { color: var(--accent); }
+    :root { color-scheme: light dark; --bg:#f7f3ea; --surface:#fff; --text:#25231f; --muted:#686259; --line:#ded7ca; --accent:#245bc7; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#191813; --surface:#24221b; --text:#efebe1; --muted:#b7afa0; --line:#403b30; --accent:#98b8ff; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:18px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { max-width:760px; padding:56px 24px 64px; margin:auto; }
+    .masthead { display:flex; align-items:center; gap:10px; margin-bottom:48px; font-size:15px; color:var(--muted); }
+    .masthead img { width:32px; height:32px; border-radius:7px; }
+    .byline { font-size:14px; color:var(--muted); margin-bottom:16px; }
+    h1 { font:600 clamp(36px,7vw,54px)/1.12 Georgia,"Times New Roman",serif; letter-spacing:-.025em; margin:0 0 24px; }
+    .lede { font-size:21px; line-height:1.6; }
+    h2 { font:600 29px/1.25 Georgia,"Times New Roman",serif; margin:52px 0 18px; }
+    p { margin:0 0 22px; }
+    a { color:var(--accent); text-underline-offset:3px; }
+    a:hover { text-decoration-thickness:2px; }
+    a:focus-visible,video:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+    .links,.note,figcaption { font-size:14px; color:var(--muted); }
+    .links { margin-top:24px; }
+    .links a { display:inline-block; }
+    figure { margin:32px 0; }
+    video { width:100%; max-width:340px; max-height:780px; display:block; margin:auto; background:var(--surface); border:1px solid var(--line); border-radius:12px; }
+    figcaption { line-height:1.6; margin-top:12px; }
+    .shots { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:center; gap:24px; }
+    .shots img { display:block; height:auto; border:1px solid var(--line); border-radius:12px; max-width:100%; }
+    .hardware-shots { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+    .hardware-shots img { display:block; width:100%; height:auto; border-radius:10px; border:1px solid var(--line); }
+    @media (max-width:480px) { .hardware-shots { grid-template-columns:1fr; } }
+    .shots .app { width:300px; }
+    .shots .widget { width:180px; }
+    .release-note { border-left:3px solid var(--line); padding-left:18px; }
+    ul { padding-left:23px; }
+    li { margin-bottom:8px; }
+    code { font-size:.88em; overflow-wrap:anywhere; }
+    footer { border-top:1px solid var(--line); margin-top:48px; padding-top:22px; font-size:13px; color:var(--muted); }
+    @media (max-width:480px) { main { padding:28px 20px 40px; } .masthead { margin-bottom:32px; } h2 { font-size:26px; } .lede { font-size:20px; } }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <div>
-        <div class="brand"><img src="images/icon.png" alt=""><span>Gate Opener</span></div>
-        <h1>Your gate, at a glance.</h1>
-        <p class="lede">Control your Tuya gate from Mac or iPhone. Optional Ring camera checks show Open, Closed or Unclear, the latest picture and a link to Live View.</p>
-        <div class="actions">
-          <a class="button" href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Download Mac 1.0.0</a>
-          <a class="button secondary" href="https://github.com/danielyaa5/gate-opener-widget#mac-from-source">Build latest source</a>
-        </div>
-        <p class="note">Free and open source (MIT). macOS 14 or later, signed and notarized. The iPhone app is built from source.</p>
-        <p class="note release-note">The demo shows the latest source build. Camera pictures, camera-based actions and automatic closing are available from source; the signed Mac download is the earlier 1.0.0 release.</p>
-      </div>
-      <figure>
-        <video class="demo" controls playsinline preload="metadata" poster="images/mac-app.png" width="800" height="1840" aria-label="Gate Opener demo using simulated gate and camera states">
-          <source src="images/demo.mp4" type="video/mp4">
-          <a href="images/demo.mp4">Watch the demo video</a>
-        </video>
-        <figcaption class="demo-caption">Production app views with simulated camera data. No real gate or private footage. <a href="images/demo.mp4">Download the video</a>.</figcaption>
-      </figure>
-    </header>
+    <div class="masthead"><img src="images/icon.png" alt=""><span>Gate Opener / Build notes</span></div>
+    <article>
+      <header>
+        <p class="byline">Daniel Yakobian · October 2026</p>
+        <h1>A widget for my gate</h1>
+        <p class="lede">This started with wanting a button for my gate on my Mac and iPhone. It grew into a small app that also shows whether the gate looks open or closed, the latest camera picture, and a couple of rules for closing it when I forget.</p>
+        <p>Smart Life already controlled the gate, but I found the app buggy. I built this around the hardware I already have. I'm sharing the source and these notes as a record of how the pieces fit together.</p>
+        <p class="links"><a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/SETUP.md">Technical setup</a></p>
+      </header>
 
-    <section>
-      <h2>How it works</h2>
-      <div class="grid">
-        <div class="card"><h3>Bridge on your Mac</h3><p>A small Python service on an always-on Mac talks to the gate controller over your LAN with its Tuya local key.</p></div>
-        <div class="card"><h3>Signed requests</h3><p>Every request is signed with your own secret, timestamped and single-use, and reaches the bridge over HTTPS, for example with Tailscale Funnel.</p></div>
-        <div class="card"><h3>One pulse, like a remote</h3><p>Open / Close sends one momentary pulse. Your controller decides whether that opens, closes or stops the gate.</p></div>
-      </div>
-    </section>
+      <section id="hardware">
+        <h2>Starting with the hardware</h2>
+        <p>I started with a broken, 30-year-old gate and an <strong>Elite SL-3000 / SL-3000UL sliding-gate operator</strong>. I kept that hardware and added an <strong>Aubric Smart WiFi Garage Door Opener Remote Controller</strong>, a Tuya / Smart Life accessory sold for garage doors. <a href="https://www.amazon.com/dp/B07QG7RGFW">This is the Amazon listing from my order</a> (ASIN <code>B07QG7RGFW</code>). That's a plain product link, not an affiliate link.</p>
+        <p>I connected the Aubric controller's two control wires directly to the gate's control-board terminals. The approach is a normally-open dry-contact trigger: a brief relay closure acts like pressing a button. The existing gate controller still handles the motor and movement; the current software sends a half-second pulse rather than holding the input on.</p>
+        <figure>
+          <div class="hardware-shots">
+            <a href="images/elite-operator.jpg"><img src="images/elite-operator.jpg" width="1152" height="1536" alt="The existing gray Elite Access Systems gate operator"></a>
+            <a href="images/elite-control-board.jpg"><img src="images/elite-control-board.jpg" width="1152" height="1536" alt="The existing Elite control board, with its relays and terminal strip visible"></a>
+          </div>
+          <figcaption>The existing Elite operator and control board. The separate Aubric module is not shown.</figcaption>
+        </figure>
+        <p class="note">The archived photos show the existing board, but don't verify which terminal pair I used for the add-on. I'm leaving terminal numbers and supply voltage out rather than turning these old photos into a wiring recipe. The gate's manual and existing safety inputs still matter.</p>
+      </section>
 
-    <section>
-      <h2>In the latest source build</h2>
-      <div class="grid">
-        <div class="card"><h3>See the latest picture</h3><p>The apps show the camera image and its original capture time. Older pictures are labeled; an unclear view stays unclear.</p></div>
-        <div class="card"><h3>Open Ring Live View</h3><p>Jump from the app to the configured camera in Ring. Camera credentials stay on your bridge Mac.</p></div>
-        <div class="card"><h3>Optional closing rules</h3><p>Use an overnight timeout or fresh TagTracker distance evidence. A close requires a fresh, confirmed Open observation; the distance rule attempts only once until a confirmed return Home.</p></div>
-      </div>
-      <p class="note">The Mac app also quits when its last window closes, removing its Dock icon. The desktop widget and bridge services continue independently.</p>
-    </section>
+      <section>
+        <h2>Giving it a button on my devices</h2>
+        <p>An always-on Mac runs a small Python bridge. The Mac and iPhone apps send it signed requests over HTTPS, and the bridge talks to the Wi-Fi controller over the home network. The controller's local key stays on that Mac.</p>
+        <p>The Mac desktop widget gives me a button without opening the app. The iPhone has a Home Screen widget and a Control Center control. When I do open the Mac app, I can check the camera and send a command from there. Closing its last window removes the Dock icon; the widget and bridge keep running.</p>
+        <figure>
+          <video controls playsinline preload="metadata" poster="images/mac-app.png" width="800" height="1840" aria-label="Gate Opener demo using simulated gate and camera states">
+            <source src="images/demo.mp4" type="video/mp4">
+            <a href="images/demo.mp4">Watch the demo video</a>
+          </video>
+          <figcaption>The demo uses the app's real views with simulated camera images and states. It doesn't show my gate or operate any hardware. <a href="images/demo.mp4">Watch or download the video</a>.</figcaption>
+        </figure>
+      </section>
 
-    <section>
-      <h2>Widgets and app</h2>
-      <div class="shots">
-        <figure><img src="images/mac-app.png" alt="Gate Opener with latest camera picture and Ring link; simulated data"><figcaption>The Mac app asks before it sends a pulse. Simulated camera data shown.</figcaption></figure>
-        <figure><img src="images/mac-widget.png" alt="Desktop widget showing Closed and an Open Gate button; simulated data"><figcaption>The desktop widget sends a command with one click.</figcaption></figure>
-      </div>
-    </section>
+      <section>
+        <h2>A successful command wasn't enough</h2>
+        <p>The relay can accept a command without telling me what the gate actually did. That distinction became the next part of the project: showing the gate's position separately from the last button press.</p>
+        <p>I started with a Ring doorbell, then switched to a continuously powered driveway camera for more frequent snapshots. One lesson along the way was that a wired doorbell can still be battery-based; a power wire doesn't necessarily make it suitable for frequent image requests.</p>
+        <p>The comparison happens locally on the Mac. It crops the part of the picture containing the gate and compares brightness-normalized structure and edges against examples I labeled Open and Closed. Color and infrared images have separate reference sets. Ring still supplies the pictures; there's no cloud vision model deciding the position.</p>
+        <p>If the picture is old, unfamiliar or too close to both examples, the result is Unclear. The app shows the picture's capture time and links to Ring Live View so I can look for myself. The monitor checks about every ten seconds, though Ring can delay images and iOS can delay widget refreshes.</p>
+        <figure>
+          <div class="shots">
+            <img class="app" src="images/mac-app.png" width="800" height="1840" alt="Gate Opener app with a simulated camera picture and capture time">
+            <img class="widget" src="images/mac-widget.png" width="376" height="376" alt="Desktop widget with a Closed observation and Open Gate button; simulated data">
+          </div>
+          <figcaption>The app and desktop widget, shown with simulated camera data.</figcaption>
+        </figure>
+      </section>
 
-    <section>
-      <h2>Get started</h2>
-      <ol>
-        <li>Set up the bridge on an always-on Mac on the gate's network. The <a href="https://github.com/danielyaa5/gate-opener-widget#set-up-the-bridge">README</a> walks through it.</li>
-        <li>On that Mac, run <code>.venv/bin/python scripts/setup_code.py --url https://your-mac.your-tailnet.ts.net</code> and copy the code.</li>
-        <li>Open Gate Opener, click <strong>Paste</strong> and the app connects. Add the widget from the desktop's Edit Widgets.</li>
-      </ol>
-      <p class="warning">Works with Tuya-based momentary gate controllers that use data point 1. An accepted pulse is not proof of movement. Optional camera observations can be unclear or delayed; keep the gate's own safety sensors working.</p>
-    </section>
+      <section>
+        <h2>Letting it close the gate</h2>
+        <p>Once I had a separate camera observation, I added an overnight rule for a gate left open too long, and a distance rule using device observations from TagTracker on the home Mac.</p>
+        <p>Both need fresh evidence that the gate is open before attempting a close. The distance rule gets one attempt per trip and only resets after a confirmed return home. Attempts are saved before sending, so restarting the service or losing a response doesn't turn into repeated button presses. These rules are optional and disabled in an unconfigured installation.</p>
+        <p>The camera is still an estimate, and a pulse can open, close or stop the gate depending on its controller. The physical gate's obstruction sensors remain responsible for safe movement. The implementation details and limits are in the <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/AUTO_CLOSE.md">automatic-closing notes</a> and <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">security policy</a>.</p>
+      </section>
 
-    <footer>
-      MIT licensed. Not affiliated with Tuya, Smart Life or Ring. <a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/DEMO_MEDIA.md">Regenerate the demo</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">Security policy</a>
-    </footer>
+      <section>
+        <h2>If you want to look around</h2>
+        <p>The source includes the bridge, native SwiftUI apps and widgets, camera comparison, and simulated-controller tests. It's specific to this setup; another installation needs its own controller checks, wiring and calibration.</p>
+        <p class="note release-note">The signed <a href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Mac download is version 1.0.0</a>. The camera pictures and automatic-closing features shown here are in the newer source build. The iPhone app is built from source.</p>
+        <ul>
+          <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/SETUP.md">Build and setup notes</a></li>
+          <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/CAMERA.md">Camera comparison and calibration</a></li>
+          <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/AUTO_CLOSE.md">Automatic-closing rules</a></li>
+          <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/DEMO_MEDIA.md">Regenerate the screenshots and demo</a></li>
+          <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/CHANGELOG.md">Changelog</a></li>
+        </ul>
+      </section>
+    </article>
+    <footer>MIT licensed. Not affiliated with Aubric, Tuya, Smart Life, Ring or Amazon. <a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a>.</footer>
   </main>
 </body>
 </html>

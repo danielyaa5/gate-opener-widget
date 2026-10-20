@@ -37,3 +37,15 @@ when finished. There is no native app to install or register in Spotlight.
 For an interactive app check, `scripts/demo_bridge.py` also provides a loopback-only
 simulated bridge, camera pictures and Open/Closed observations. Use a separate demo
 app identity for that check; do not replace the connection in an installed real app.
+
+## Hardware photographs
+
+`elite-operator.jpg` and `elite-control-board.jpg` are original archival photos
+supplied for the project story, separate from the simulated app media. They show
+the existing Elite operator and control board; the Aubric add-on is not shown.
+They are not a wiring-terminal diagram for the Aubric connection.
+
+The published copies preserve the original image pixels and color profile, with
+EXIF, IPTC and XMP metadata removed. Keep these photographs separate from camera
+calibration images and do not replace them when regenerating the demo. The media
+script does not create or modify them.

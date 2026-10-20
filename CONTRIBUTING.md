@@ -1,7 +1,7 @@
 # Contributing
 
 Use Python 3.10+ for the bridge and Xcode 27.1+ with XcodeGen for the apps.
-Start with the setup in README.md (RELEASE.md in the private development checkout).
+Start with the technical setup in [docs/SETUP.md](docs/SETUP.md).
 
 Run `.venv/bin/python -m unittest discover -s tests -v` before proposing changes.
 Tests use simulated controllers; never point automated tests at a real gate.
@@ -18,8 +18,8 @@ signing team IDs, or private endpoints in contributions. Use synthetic credentia
 and example addresses in bug reports and tests. To try the apps without a gate,
 run `.venv/bin/python scripts/demo_bridge.py` and paste the setup code it prints.
 
-The app icon artwork was made with OpenAI image generation and is included under
-the repository license. Its master image is `assets/gate-icon-master.png`.
+The app icon artwork is included under the repository license. Its master image
+is `assets/gate-icon-master.png`.
 Regenerate the checked-in assets on macOS with
 `swift scripts/generate_icons.swift` from the repository root.
 

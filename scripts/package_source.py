@@ -12,7 +12,7 @@ PATTERNS = (
     "gate_bridge/*.py", "alexa_skill/*.py", "alexa_skill/*.json", "tests/*.py", "scripts/*.py", "scripts/*.swift", "launchd/*.template",
     "assets/**/*.json", "assets/**/*.png", ".github/workflows/*.yml",
     ".github/ISSUE_TEMPLATE/*.yml", ".github/PULL_REQUEST_TEMPLATE.md", "docs/*.md", "docs/*.html",
-    "docs/images/*.png", "docs/images/*.gif", "docs/images/*.mp4", "docs/images/*.json",
+    "docs/images/*.png", "docs/images/*.jpg", "docs/images/*.jpeg", "docs/images/*.gif", "docs/images/*.mp4", "docs/images/*.json",
     "ios/GateOpener/App/*.swift", "ios/GateOpener/Shared/*.swift",
 "ios/GateOpenerWidget/*.swift",
     "ios/GateOpenerWidget/Info.plist", "ios/project.yml", "macos/project.yml",
@@ -23,7 +23,7 @@ PATTERNS = (
 EXCLUDED = "ios/GateOpener/Shared/LocalConfiguration.swift"
 PROJECT_SPECS = ("ios/project.yml", "macos/project.yml")
 SIGNING_FILES = PROJECT_SPECS + ("ios/GateOpener.xcodeproj/project.pbxproj", "macos/GateOpenerMac.xcodeproj/project.pbxproj")
-BINARY_SUFFIXES = {".png", ".gif", ".mp4"}
+BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".mp4"}
 PUBLIC_PREFIX = "org.example"
 PUBLIC_APP_ID = "org.example.GateOpener"
 
