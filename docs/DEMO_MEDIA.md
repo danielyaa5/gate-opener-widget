@@ -60,3 +60,16 @@ The published copies preserve the original image pixels and color profile, with
 EXIF, IPTC and XMP metadata removed. Keep these photographs separate from camera
 calibration images and do not replace them when regenerating the demo. The media
 script does not create or modify them.
+
+## Architecture and belt repair
+
+Regenerate the editable SVG architecture diagram with:
+
+```sh
+python3 scripts/generate_architecture.py
+```
+
+The README and blog use the same `docs/images/architecture.svg`; it contains no
+private endpoint, device identifiers or credentials. The original belt-repair
+photo, `elite-belt-drive.jpg`, was supplied for the article, resized for web use
+and saved without EXIF metadata. Neither asset comes from the live Ring camera.

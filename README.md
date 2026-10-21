@@ -22,6 +22,14 @@ Controller**, a Tuya / Smart Life accessory sold for garage doors.
 [This is the Amazon listing from my order](https://www.amazon.com/dp/B07QG7RGFW)
 (ASIN `B07QG7RGFW`). That's a plain product link, not an affiliate link.
 
+Before any software, I got the gate moving again by replacing the drive belt. A $10 belt was enough to keep the old motor and gearbox going; the Wi-Fi controller was a separate addition.
+
+<p align="center">
+  <img src="docs/images/elite-belt-drive.jpg" width="480" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox">
+</p>
+
+*Inside the old operator: the belt connects the motor to the gearbox.*
+
 I connected the Aubric controller's two control wires directly to the gate's
 control-board terminals. The approach is a normally-open dry-contact trigger:
 a brief relay closure acts like pressing a button. The existing gate controller
@@ -41,6 +49,12 @@ The archived photos show the existing board, but don't verify which terminal
 pair I used for the add-on. I'm leaving terminal numbers and supply voltage out
 rather than turning these old photos into a wiring recipe. The gate's manual
 and existing safety inputs still matter.
+
+## Getting from Smart Life to my own button
+
+I paired the Aubric controller with Smart Life, then used Tuya’s cloud API through [TinyTuya](https://github.com/jasonacox/tinytuya) to retrieve its local key. That setup needs a Tuya IoT project linked to the Smart Life account. The project’s setup helper retrieves the key without saving the cloud Client ID or Client Secret.
+
+The cloud API was for setup. Normal gate commands use TinyTuya to talk directly to the controller over the home network. The bridge switches data point 1 on, waits half a second, then switches it off again. The controller’s local key stays on the bridge Mac; the apps have a separate secret for their signed bridge requests.
 
 ## Giving it a button on my devices
 
@@ -68,6 +82,10 @@ I started with a Ring doorbell, then switched to a continuously powered driveway
 camera for more frequent snapshots. One lesson along the way was that a wired
 doorbell can still be battery-based; a power wire doesn't necessarily make it
 suitable for frequent image requests.
+
+I started with the [community Ring MCP server](https://github.com/jpcors/ring-mcp), signed in to my Ring account with two-factor authentication, and used it to find the camera and try snapshots. It uses the unofficial [ring-client-api library](https://github.com/dgreif/ring).
+
+For continuous checks, a small Node.js helper on the always-on Mac uses that library’s authenticated client and Ring’s snapshot endpoint to download JPEGs. It keeps the rotating refresh token in private storage and passes each image with its capture time to the Python monitor. The apps read the shared result and latest picture from the bridge, so every widget refresh doesn’t become another Ring request.
 
 The comparison happens locally on the Mac. It crops the part of the picture
 containing the gate and compares brightness-normalized structure and edges
@@ -99,6 +117,14 @@ Questions are spaced at least 15 minutes apart. Learning keeps running with the 
 </p>
 
 *The Mac learning dialog, rendered with a simulated camera picture. No real camera footage is shown.*
+
+## How the pieces fit together
+
+Two paths meet on the Mac: one sends a momentary relay command, the other checks a camera picture. A saved Open or Closed label improves later comparisons; it does not operate the gate.
+
+[![Gate Opener architecture: separate signed control and Ring snapshot paths](docs/images/architecture.svg)](docs/images/architecture.svg)
+
+*Tuya’s cloud API is used for local-key setup. Ring supplies snapshots at runtime; gate commands stay on the home network after the signed request reaches the bridge.*
 
 ## Letting it close the gate
 

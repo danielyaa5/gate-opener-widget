@@ -12,7 +12,7 @@ PATTERNS = (
     "gate_bridge/*.py", "alexa_skill/*.py", "alexa_skill/*.json", "tests/*.py", "scripts/*.py", "scripts/*.swift", "launchd/*.template",
     "assets/**/*.json", "assets/**/*.png", ".github/workflows/*.yml",
     ".github/ISSUE_TEMPLATE/*.yml", ".github/PULL_REQUEST_TEMPLATE.md", "docs/*.md", "docs/*.html",
-    "docs/images/*.png", "docs/images/*.jpg", "docs/images/*.jpeg", "docs/images/*.gif", "docs/images/*.mp4", "docs/images/*.json",
+    "docs/images/*.png", "docs/images/*.jpg", "docs/images/*.jpeg", "docs/images/*.gif", "docs/images/*.mp4", "docs/images/*.json", "docs/images/*.svg",
     "ios/GateOpener/App/*.swift", "ios/GateOpener/Shared/*.swift",
 "ios/GateOpenerWidget/*.swift",
     "ios/GateOpenerWidget/Info.plist", "ios/project.yml", "macos/project.yml",

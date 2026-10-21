@@ -35,6 +35,8 @@
     @media (max-width:480px) { .hardware-shots { grid-template-columns:1fr; } }
     .shots .app { width:300px; }
     .shots .widget { width:180px; }
+    .repair-shot img { display:block; width:100%; max-width:480px; height:auto; margin:auto; border:1px solid var(--line); border-radius:12px; }
+    .architecture-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .learning-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .release-note { border-left:3px solid var(--line); padding-left:18px; }
     ul { padding-left:23px; }
@@ -59,6 +61,11 @@
       <section id="hardware">
         <h2>Starting with the hardware</h2>
         <p>I started with a broken, 30-year-old gate and an <strong>Elite SL-3000 / SL-3000UL sliding-gate operator</strong>. I kept that hardware and added an <strong>Aubric Smart WiFi Garage Door Opener Remote Controller</strong>, a Tuya / Smart Life accessory sold for garage doors. <a href="https://www.amazon.com/dp/B07QG7RGFW">This is the Amazon listing from my order</a> (ASIN <code>B07QG7RGFW</code>). That's a plain product link, not an affiliate link.</p>
+        <p>Before any software, I got the gate moving again by replacing the drive belt. A $10 belt was enough to keep the old motor and gearbox going; the Wi-Fi controller was a separate addition.</p>
+        <figure class="repair-shot">
+          <a href="images/elite-belt-drive.jpg"><img src="images/elite-belt-drive.jpg" width="1800" height="2400" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox"></a>
+          <figcaption>Inside the old operator: the belt connects the motor to the gearbox.</figcaption>
+        </figure>
         <p>I connected the Aubric controller's two control wires directly to the gate's control-board terminals. The approach is a normally-open dry-contact trigger: a brief relay closure acts like pressing a button. The existing gate controller still handles the motor and movement; the current software sends a half-second pulse rather than holding the input on.</p>
         <figure>
           <div class="hardware-shots">
@@ -68,6 +75,12 @@
           <figcaption>The existing Elite operator and control board. The separate Aubric module is not shown.</figcaption>
         </figure>
         <p class="note">The archived photos show the existing board, but don't verify which terminal pair I used for the add-on. I'm leaving terminal numbers and supply voltage out rather than turning these old photos into a wiring recipe. The gate's manual and existing safety inputs still matter.</p>
+      </section>
+
+      <section id="tuya-api">
+        <h2>Getting from Smart Life to my own button</h2>
+        <p>I paired the Aubric controller with Smart Life, then used Tuya’s cloud API through <a href="https://github.com/jasonacox/tinytuya">TinyTuya</a> to retrieve its local key. That setup needs a Tuya IoT project linked to the Smart Life account. The project’s setup helper retrieves the key without saving the cloud Client ID or Client Secret.</p>
+        <p>The cloud API was for setup. Normal gate commands use TinyTuya to talk directly to the controller over the home network. The bridge switches data point 1 on, waits half a second, then switches it off again. The controller’s local key stays on the bridge Mac; the apps have a separate secret for their signed bridge requests.</p>
       </section>
 
       <section>
@@ -87,6 +100,8 @@
         <h2>A successful command wasn't enough</h2>
         <p>The relay can accept a command without telling me what the gate actually did. That distinction became the next part of the project: showing the gate's position separately from the last button press.</p>
         <p>I started with a Ring doorbell, then switched to a continuously powered driveway camera for more frequent snapshots. One lesson along the way was that a wired doorbell can still be battery-based; a power wire doesn't necessarily make it suitable for frequent image requests.</p>
+        <p>I started with the <a href="https://github.com/jpcors/ring-mcp">community Ring MCP server</a>, signed in to my Ring account with two-factor authentication, and used it to find the camera and try snapshots. It uses the unofficial <a href="https://github.com/dgreif/ring">ring-client-api library</a>.</p>
+        <p>For continuous checks, a small Node.js helper on the always-on Mac uses that library’s authenticated client and Ring’s snapshot endpoint to download JPEGs. It keeps the rotating refresh token in private storage and passes each image with its capture time to the Python monitor. The apps read the shared result and latest picture from the bridge, so every widget refresh doesn’t become another Ring request.</p>
         <p>The comparison happens locally on the Mac. It crops the part of the picture containing the gate and compares brightness-normalized structure and edges against examples I labeled Open and Closed. Color and infrared images have separate reference sets. Ring still supplies the pictures; there's no cloud vision model deciding the position.</p>
         <p>If the picture is old, unfamiliar or too close to both examples, the result is Unclear. The app shows the picture's capture time and links to Ring Live View so I can look for myself. The monitor checks about every ten seconds, though Ring can delay images and iOS can delay widget refreshes.</p>
         <figure>
@@ -106,6 +121,15 @@
         <figure class="learning-shot">
           <img src="images/learning-mode.png" width="1200" height="1173" alt="Mac learning dialog asking Fully Open, Fully Closed, or Skip, with a simulated camera picture">
           <figcaption>The Mac learning dialog, rendered with a simulated camera picture. No real camera footage is shown.</figcaption>
+        </figure>
+      </section>
+
+      <section id="architecture">
+        <h2>How the pieces fit together</h2>
+        <p>Two paths meet on the Mac: one sends a momentary relay command, the other checks a camera picture. A saved Open or Closed label improves later comparisons; it does not operate the gate.</p>
+        <figure class="architecture-shot">
+          <a href="images/architecture.svg"><img src="images/architecture.svg" width="840" height="1180" alt="Gate Opener architecture: separate signed control and Ring snapshot paths"></a>
+          <figcaption>Tuya’s cloud API is used for local-key setup. Ring supplies snapshots at runtime; gate commands stay on the home network after the signed request reaches the bridge.</figcaption>
         </figure>
       </section>
 
