@@ -35,6 +35,7 @@
     @media (max-width:480px) { .hardware-shots { grid-template-columns:1fr; } }
     .shots .app { width:300px; }
     .shots .widget { width:180px; }
+    .learning-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .release-note { border-left:3px solid var(--line); padding-left:18px; }
     ul { padding-left:23px; }
     li { margin-bottom:8px; }
@@ -97,6 +98,17 @@
         </figure>
       </section>
 
+      <section id="learning-mode">
+        <h2>Teaching it when the light changes</h2>
+        <p>My next problem was light. A gate that looked obvious to me could still come back as Unclear when shadows moved or evening lights came on. I could keep adding reference photos by hand, but I wanted the app to ask when it needed help.</p>
+        <p>Now, when a fresh picture is unclear, the Mac shows that exact picture and asks me to choose Fully Open, Fully Closed, or Skip / Not sure. My answer saves a private reference on the bridge Mac for future comparisons, helping both widgets. A partly open or moving gate is a reason to skip.</p>
+        <p>Questions are spaced at least 15 minutes apart. Learning keeps running with the main window closed and the Dock icon hidden; quitting the app stops it. Labeling a picture never sends a gate command. It is still the same local comparison, with more examples from different light.</p>
+        <figure class="learning-shot">
+          <img src="images/learning-mode.png" width="1200" height="1173" alt="Mac learning dialog asking Fully Open, Fully Closed, or Skip, with a simulated camera picture">
+          <figcaption>The Mac learning dialog, rendered with a simulated camera picture. No real camera footage is shown.</figcaption>
+        </figure>
+      </section>
+
       <section>
         <h2>Letting it close the gate</h2>
         <p>Once I had a separate camera observation, I added an overnight rule for a gate left open too long, and a distance rule using device observations from TagTracker on the home Mac.</p>
@@ -107,7 +119,7 @@
       <section>
         <h2>If you want to look around</h2>
         <p>The source includes the bridge, native SwiftUI apps and widgets, camera comparison, and simulated-controller tests. It's specific to this setup; another installation needs its own controller checks, wiring and calibration.</p>
-        <p class="note release-note">The signed <a href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Mac download is version 1.0.0</a>. The camera pictures and automatic-closing features shown here are in the newer source build. The iPhone app is built from source.</p>
+        <p class="note release-note">The signed <a href="https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip">Mac download is version 1.0.0</a>. The camera pictures, learning mode and automatic-closing features shown here are in the newer source build. The iPhone app is built from source.</p>
         <ul>
           <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/SETUP.md">Build and setup notes</a></li>
           <li><a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/CAMERA.md">Camera comparison and calibration</a></li>

@@ -59,6 +59,12 @@ def save_snapshot_line(line: bytes, config_path: Path, *, now: float | None = No
             result.update(state="unknown", reason="movement", match_score=None)
     else:
         retry_after = max(interval, float(payload.get("retry_after", interval)))
+        code = payload.get("error_code")
+        if code not in {"NO_RECENT_IMAGE", "ETIMEDOUT", "ECONNRESET", "ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN"}:
+            code = "OTHER"
+        status = payload.get("error_status")
+        status = status if type(status) is int and 100 <= status <= 599 else 0
+        LOGGER.warning("Camera request unavailable code=%s http_status=%s", code, status)
     try:
         previous = json.loads(output.read_text())
     except (OSError, ValueError):

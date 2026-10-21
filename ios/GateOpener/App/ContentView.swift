@@ -348,6 +348,10 @@ struct GateDashboardView: View {
 
             cameraCard
 
+            #if os(macOS)
+            GateLearningSettings()
+            #endif
+
             Label(isOnline == true ? "Connected" : isOnline == false ? "Connection unavailable" : "Connecting…",
                   systemImage: isOnline == true ? "checkmark.circle.fill" : isOnline == false ? "wifi.exclamationmark" : "network")
                 .font(.caption)

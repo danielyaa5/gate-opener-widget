@@ -86,6 +86,20 @@ Ring can delay images and iOS can delay widget refreshes.
   <img src="docs/images/mac-widget.png" width="180" alt="Desktop widget with a Closed observation and Open Gate button; simulated data">
 </p>
 
+## Teaching it when the light changes
+
+My next problem was light. A gate that looked obvious to me could still come back as Unclear when shadows moved or evening lights came on. I could keep adding reference photos by hand, but I wanted the app to ask when it needed help.
+
+Now, when a fresh picture is unclear, the Mac shows that exact picture and asks me to choose Fully Open, Fully Closed, or Skip / Not sure. My answer saves a private reference on the bridge Mac for future comparisons, helping both widgets. A partly open or moving gate is a reason to skip.
+
+Questions are spaced at least 15 minutes apart. Learning keeps running with the main window closed and the Dock icon hidden; quitting the app stops it. Labeling a picture never sends a gate command. It is still the same local comparison, with more examples from different light.
+
+<p align="center">
+  <img src="docs/images/learning-mode.png" width="600" alt="Mac learning dialog asking Fully Open, Fully Closed, or Skip, with a simulated camera picture">
+</p>
+
+*The Mac learning dialog, rendered with a simulated camera picture. No real camera footage is shown.*
+
 ## Letting it close the gate
 
 Once I had a separate camera observation, I added an overnight rule for a gate
@@ -110,8 +124,8 @@ comparison, and simulated-controller tests. It's specific to this setup;
 another installation needs its own controller checks, wiring and calibration.
 
 The signed [Mac download is version 1.0.0](https://github.com/danielyaa5/gate-opener-widget/releases/latest/download/GateOpener-mac.zip).
-The camera pictures and automatic-closing features shown here are in the newer
-source build. The iPhone app is built from source.
+The camera pictures, learning mode and automatic-closing features shown here
+are in the newer source build. The iPhone app is built from source.
 
 - [Build and setup notes](docs/SETUP.md)
 - [Camera comparison and calibration](docs/CAMERA.md)

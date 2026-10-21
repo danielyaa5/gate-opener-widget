@@ -98,7 +98,7 @@ def lighting_mode(image: bytes) -> str:
         return "night" if chroma < 3 else "day"
 
 
-def image_features(image: bytes, roi: list[float]) -> list[float]:
+def image_features(image: bytes, roi: list[float], *, pooled_edges: bool = False) -> list[float]:
     """Compare gate geometry with brightness-normalized edges and structure."""
     from PIL import Image, ImageFilter, ImageOps, ImageStat
 
@@ -123,6 +123,23 @@ def image_features(image: bytes, roi: list[float]) -> list[float]:
         if norm < 1:
             raise ValueError("Camera view has too little detail")
         return [value / norm for value in values]
+    if pooled_edges:
+        # Pool edge directions within 8x8 cells so a moving shadow or small
+        # exposure change need not match the exact reference pixels. Retain
+        # spatial layout: one histogram for the whole crop loses gate geometry.
+        bins = 8
+        histogram = [0.0] * (8 * 8 * bins)
+        for y in range(1, 63):
+            for x in range(1, 63):
+                index = y * 64 + x
+                dx = pixels[index + 1] - pixels[index - 1]
+                dy = pixels[index + 64] - pixels[index - 64]
+                direction = (math.atan2(dy, dx) % math.pi) / math.pi * bins
+                start = ((y // 8) * 8 + x // 8) * bins
+                magnitude = math.hypot(dx, dy)
+                histogram[start + int(direction) % bins] += magnitude * (1 - direction % 1)
+                histogram[start + (int(direction) + 1) % bins] += magnitude * (direction % 1)
+        return unit(histogram)
     return [value * math.sqrt(0.75) for value in unit(gradients)] + [value * 0.5 for value in unit(structure)]
 
 
@@ -139,16 +156,25 @@ def classify_snapshot(image: bytes, configuration: dict) -> tuple[str, str, floa
             not all(isinstance(value, (int, float)) and math.isfinite(value) and 0 <= value <= 1 for value in roi) or
             roi[0] >= roi[2] or roi[1] >= roi[3]):
         raise ValueError("Invalid camera region")
-    references: dict[str, list[list[float]]] = {"open": [], "closed": []}
+    reference_images: dict[str, list[bytes]] = {"open": [], "closed": []}
     for reference in configuration.get("references", []):
-        if reference.get("lighting") == mode and reference.get("state") in references:
+        if reference.get("lighting") == mode and reference.get("state") in reference_images:
             data = Path(reference["path"]).read_bytes()
             if lighting_mode(data) != mode:
                 continue
-            references[reference["state"]].append(image_features(data, roi))
-    if not all(references.values()):
+            reference_images[reference["state"]].append(data)
+    if not all(reference_images.values()):
         return "unknown", "needs_day_references" if mode == "day" else "needs_night_references", None
-    features = image_features(image, roi)
+    return _match_snapshot(image, reference_images, roi,
+                           shadow_tolerant_closed=configuration.get("shadow_tolerant_closed") is True)
+
+
+def _match_snapshot(image: bytes, reference_images: dict[str, list[bytes]], roi: list[float],
+                    *, pooled_edges: bool = False,
+                    shadow_tolerant_closed: bool = False) -> tuple[str, str, float | None]:
+    references = {state: [image_features(data, roi, pooled_edges=pooled_edges) for data in images]
+                  for state, images in reference_images.items()}
+    features = image_features(image, roi, pooled_edges=pooled_edges)
     distances = {state: min(feature_distance(features, ref) for ref in refs) for state, refs in references.items()}
     separation = min(feature_distance(a, b) for a in references["open"] for b in references["closed"])
     state = min(distances, key=distances.get)
@@ -157,6 +183,14 @@ def classify_snapshot(image: bytes, configuration: dict) -> tuple[str, str, floa
     # Reject near-identical references, unfamiliar/obstructed views and ambiguous
     # intermediate positions instead of converting "different" into "open".
     if separation < 0.18 or best > min(0.25, separation * 0.22) or other - best < max(0.08, separation * 0.5):
+        if (shadow_tolerant_closed and state == "closed" and separation >= 0.18 and best <= 0.25
+                and other - best >= max(0.08, separation * 0.5)):
+            # Recover only Closed, and only when both comparisons favor it.
+            # Open observations eligible for auto-close still require the
+            # original matcher. Never reuse an earlier observation here.
+            pooled = _match_snapshot(image, reference_images, roi, pooled_edges=True)
+            if pooled[0] == "closed":
+                return pooled
         return "unknown", "unclear", None
     return state, "matched", round(max(0.0, min(1.0, 1 - best / separation)), 3)
 

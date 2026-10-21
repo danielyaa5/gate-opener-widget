@@ -1,0 +1,19 @@
+{
+  "description": "Production learning-dialog view rendered offscreen with a fictional camera image and inert actions; no live settings, images or network access.",
+  "sources": {
+    "ios/GateOpener/App/ContentView.swift": "4c7a0e824a675355f6b209abfb4e287bb6bc106fc51d7ba8d572d00d3c1625c0",
+    "ios/GateOpenerWidget/GateOpenerWidget.swift": "d23e2cca2af805b3ba08394c68aa0ce974c6274502156e092a425bc8cd713eab",
+    "ios/GateOpener/Shared/GatePosition.swift": "93cccbddb30f947a3d81dab075fe024ffde8a28c4997c6fc407ddef86daaf460",
+    "ios/GateOpener/Shared/GateActionFeedback.swift": "8ed017ce5da9a21c3e4f41df9c295e02f4f19ea2d8777ce8c1ad8be27258bf8b",
+    "ios/GateOpener/Shared/GateSettings.swift": "6caaf5ba98d6d871dde2fdeda1505c4f6aa30784b8763d866dbe261d3baa08d8",
+    "ios/GateOpener/Shared/GateAPIClient.swift": "7b77b0be7e4b18314f66ea72d6bb406b681c92dd8888f85f836635c38c61c7ad",
+    "ios/GateOpener/Shared/OpenGateIntent.swift": "47abba5c2f3f52e20af0b4665bfb9f383dc44ea1a2ae189ee66af12718a6820b",
+    "scripts/generate_demo_media.swift": "017ef879486fe6418e12d36b649dfc0ad190649473497212046ac37d3c8b8849",
+    "scripts/generate_demo_media.py": "3722d3d0dbb73b946e49fc6bcd0b5b41b468a088d091b7584060574bc0e7e98f",
+    "scripts/demo_camera.py": "493139e4690b62e866177f6f0cb9936e38bc1431d9a8d5043fdf1b258e6a0d7e",
+    "macos/GateOpenerMac/GateLearningController.swift": "5d73a405f6049ba1bec80c176e7c8074aa7c5819b1e7f6a6ce5118ed8c2d4902"
+  },
+  "outputs": {
+    "learning-mode.png": "d524b2039f7ab8e302f6ba51dabbfb28f65b3b9ea8b4b01db3f987ec43739e2b"
+  }
+}

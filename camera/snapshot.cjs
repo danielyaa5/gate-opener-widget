@@ -8,6 +8,14 @@ const delay = (milliseconds) => new Promise(resolve => setTimeout(resolve, milli
 const write = (payload) => new Promise(resolve => process.stdout.write(JSON.stringify(payload) + '\n', resolve));
 const snapshotTimestamps = new WeakMap();
 
+function failureDetails(error) {
+  // Keep request URLs, headers, bodies and account details out of diagnostics.
+  const safeCodes = ['NO_RECENT_IMAGE', 'ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN'];
+  const status = error?.response?.statusCode;
+  return { error_code: safeCodes.includes(error?.code) ? error.code : 'OTHER',
+    error_status: Number.isInteger(status) && status >= 100 && status <= 599 ? status : 0 };
+}
+
 function retryDelay(error, failures, interval) {
   const header = error?.response?.headers?.['retry-after'];
   let retryAfter = Number(header);
@@ -22,7 +30,7 @@ async function capture(client, cameraID, configuration = {}) {
   // Ring's next-image endpoint can return a new uploaded frame immediately.
   // Asking for only the last three seconds needlessly waits for another one.
   const after = force ? Math.max(previous ?? -Infinity, Date.now() - 10000) : 0;
-  const snapshot = await client.request({
+  const options = {
     url: `https://app-snaps.ring.com/snapshots/next/${cameraID}`,
     responseType: 'buffer',
     searchParams: { 'after-ms': after,
@@ -30,9 +38,22 @@ async function capture(client, cameraID, configuration = {}) {
     headers: { accept: 'image/jpeg' },
     allowNoResponse: true,
     timeout: 18000,
-  });
+  };
+  let snapshot;
+  try {
+    snapshot = await client.request(options);
+  } catch (error) {
+    // A next-image 404 can miss a newly uploaded cached frame. Read it without
+    // forcing another capture, but never bypass Ring's explicit retry window.
+    if (!force || error?.response?.statusCode !== 404 || error.response.headers?.['retry-after']) throw error;
+    snapshot = await client.request({ ...options,
+      searchParams: { 'after-ms': 0, 'max-wait-ms': 1000 } });
+  }
   if (!Buffer.isBuffer(snapshot) || snapshot.length === 0 || !Number.isFinite(snapshot.responseTimestamp) || !Number.isFinite(snapshot.timeMillis)) {
     throw Object.assign(new Error('No recent camera image'), { code: 'NO_RECENT_IMAGE' });
+  }
+  if (force && previous !== undefined && snapshot.timeMillis <= previous) {
+    throw Object.assign(new Error('No newer camera image'), { code: 'NO_RECENT_IMAGE' });
   }
   if (!snapshotTimestamps.has(client)) snapshotTimestamps.set(client, new Map());
   snapshotTimestamps.get(client).set(String(cameraID), Math.max(previous ?? -Infinity, snapshot.timeMillis));
@@ -69,7 +90,7 @@ async function main() {
       } catch (error) {
         if (!watching) throw error;
         const seconds = retryDelay(error, ++failures, interval);
-        await write({ error: 'camera_unavailable', retry_after: seconds });
+        await write({ error: 'camera_unavailable', retry_after: seconds, ...failureDetails(error) });
         await delay(seconds * 1000);
       }
     } while (watching);
@@ -78,7 +99,7 @@ async function main() {
   }
 }
 
-module.exports = { retryDelay, capture };
+module.exports = { retryDelay, capture, failureDetails };
 if (require.main === module) main().then(() => process.exit(0)).catch(() => {
     console.error('Camera snapshot unavailable');
     process.exit(1);

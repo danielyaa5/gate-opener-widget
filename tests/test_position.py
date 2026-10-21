@@ -83,6 +83,49 @@ class CameraPositionTests(unittest.TestCase):
                 r["path"] = str(self.root / f'open-{r["lighting"]}.jpg')
         self.assertEqual(classify_snapshot(self.fixture("open", "night"), self.config)[0], "unknown")
 
+    def shadowed(self, state: str) -> bytes:
+        image = Image.open(io.BytesIO(self.fixture(state, "day"))).convert("RGB")
+        shadow = ImageEnhance.Brightness(image.crop((15, 0, 55, 160))).enhance(0.2)
+        image.paste(shadow, (15, 0))
+        output = io.BytesIO()
+        image.save(output, format="JPEG")
+        return output.getvalue()
+
+    def test_closed_shadow_recovery_requires_explicit_opt_in(self) -> None:
+        image = self.shadowed("closed")
+        self.assertEqual(classify_snapshot(image, self.config)[0], "unknown")
+        self.config["shadow_tolerant_closed"] = "true"
+        self.assertEqual(classify_snapshot(image, self.config)[0], "unknown")
+        self.config["shadow_tolerant_closed"] = True
+        self.assertEqual(classify_snapshot(image, self.config)[:2], ("closed", "matched"))
+
+    def test_shadow_recovery_never_promotes_an_uncertain_open_observation(self) -> None:
+        for image in [self.fixture("open", "day"), self.shadowed("open")]:
+            baseline = classify_snapshot(image, self.config)
+            recovered = classify_snapshot(image, {**self.config, "shadow_tolerant_closed": True})
+            self.assertEqual(recovered, baseline)
+        self.assertEqual(classify_snapshot(self.shadowed("open"), self.config)[0], "unknown")
+
+    def test_disagreeing_comparisons_cannot_recover_closed_or_promote_open(self) -> None:
+        opened, closed = self.fixture("open", "day"), self.fixture("closed", "day")
+        current = self.shadowed("closed")
+        for original, pooled in [([0.8, 0.6], [0.0, 1.0]), ([0.6, 0.8], [1.0, 0.0])]:
+            def features(data, roi, *, pooled_edges=False):
+                if data == opened:
+                    return [1.0, 0.0]
+                if data == closed:
+                    return [0.0, 1.0]
+                return pooled if pooled_edges else original
+            with self.subTest(original=original, pooled=pooled), patch("gate_bridge.position.image_features", side_effect=features):
+                self.assertEqual(classify_snapshot(current, {**self.config, "shadow_tolerant_closed": True})[0], "unknown")
+
+    def test_shadow_recovery_keeps_obstruction_ambiguity_and_freshness_checks(self) -> None:
+        self.config["shadow_tolerant_closed"] = True
+        self.test_obstructed_and_ambiguous_views_are_not_called_closed()
+        self.test_identical_open_and_closed_references_are_rejected()
+        self.config_path.write_text(json.dumps(self.config))
+        self.test_old_or_future_images_are_never_reported_as_current()
+
     def test_old_or_future_images_are_never_reported_as_current(self) -> None:
         for captured in [950, 1100, float("nan")]:
             with self.subTest(captured=captured):

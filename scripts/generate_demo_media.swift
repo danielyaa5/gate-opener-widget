@@ -81,6 +81,32 @@ struct GenerateDemoMedia {
         _ = NSApplication.shared
         let folder = URL(fileURLWithPath: CommandLine.arguments[1])
         let frames = try JSONDecoder().decode([DemoFrame].self, from: Data(contentsOf: folder.appendingPathComponent("frames.json")))
+        let first = frames[0]
+        let candidate = GateLearningCandidate(id: "fictional-learning-example", capturedAt: 1_792_517_400,
+                                             imageBase64: first.preview.imageBase64!, cameraName: "Demo camera")
+        try write(
+            VStack(spacing: 0) {
+                HStack(spacing: 7) {
+                    ForEach([Color.red, .yellow, .green], id: \.self) { color in
+                        Circle().fill(color.opacity(0.75)).frame(width: 10, height: 10)
+                    }
+                    Spacer()
+                    Text("Help Gate Opener learn").font(.caption.weight(.semibold))
+                    Spacer()
+                    Color.clear.frame(width: 44, height: 1)
+                }.padding(14).background(.quaternary.opacity(0.35))
+                Text("SIMULATED DEMO").font(.system(size: 9, weight: .bold)).foregroundStyle(.secondary).padding(.top, 14)
+                demoLearningPrompt(candidate)
+            }
+            .frame(width: 600).background(Color(nsColor: .windowBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.black.opacity(0.08), lineWidth: 1))
+            .environment(\.colorScheme, .light)
+            .environment(\.locale, Locale(identifier: "en_US"))
+            .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!),
+            to: folder.appendingPathComponent("learning-mode.png")
+        )
+        if CommandLine.arguments.contains("--learning-only") { return }
         for frame in frames {
             try write(DemoWindow(frame: frame), to: folder.appendingPathComponent("\(frame.name).png"))
         }

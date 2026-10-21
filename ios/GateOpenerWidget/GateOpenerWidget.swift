@@ -165,7 +165,8 @@ struct GateWidgetView: View {
                 .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 3)
-                .invalidatableContent()
+                // Keep this label interactive on macOS. invalidatableContent()
+                // can route the tap to the widget's containing app instead.
         }
         .disabled(feedback?.isSending(at: date) == true)
     }

@@ -175,6 +175,32 @@ struct GateAPIClient: Sendable {
         return try JSONDecoder().decode(GateCameraPreview.self, from: data)
     }
 
+    func learningStatus() async throws -> GateLearningStatus {
+        let request = signedRequest(path: "/v1/learning", method: "GET", requestID: makeRequestID(), timeout: 12)
+        let (data, response) = try await Self.session.data(for: request)
+        try validate(data: data, response: response)
+        guard data.count <= 7_100_000 else { throw GateAPIError.invalidResponse }
+        return try JSONDecoder().decode(GateLearningStatus.self, from: data)
+    }
+
+    func answerLearning(candidateID: String, state: String) async throws {
+        try await updateLearning(["candidate_id": candidateID, "state": state])
+    }
+
+    func setLearningEnabled(_ enabled: Bool) async throws {
+        try await updateLearning(["action": "set_enabled", "enabled": enabled])
+    }
+
+    private func updateLearning(_ payload: [String: Any]) async throws {
+        let body = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        let request = signedRequest(path: "/v1/learning", method: "POST", requestID: makeRequestID(), body: body, timeout: 25)
+        let (data, response) = try await Self.session.data(for: request)
+        try validate(data: data, response: response)
+        struct Reply: Decodable { let result: String }
+        guard let reply = try? JSONDecoder().decode(Reply.self, from: data),
+              ["saved", "skipped", "enabled", "disabled"].contains(reply.result) else { throw GateAPIError.invalidResponse }
+    }
+
     private func signedRequest(
         path: String,
         method: String,

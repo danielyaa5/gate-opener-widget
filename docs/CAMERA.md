@@ -47,6 +47,17 @@ Confirm the real gate position for every example and validate additional
 images that were not used as references. Add more examples if weather or
 lighting changes; do not lower the thresholds to force a result.
 
+For a fixed view where moving shadows repeatedly hide an otherwise clear
+Closed match, the private configuration can opt into
+`"shadow_tolerant_closed": true`. If the original comparison favors Closed but
+rejects its exact pixel match, a second comparison pools edge directions in
+small spatial cells. The original comparison must still pass its ambiguity
+check and absolute distance limit. Both comparisons must favor Closed, and the second must
+pass the same separation, distance and ambiguity checks. Validate independent
+photos before enabling it. This recovery can only report Closed; it cannot
+create an Open observation or make a new observation eligible for automatic
+closing. Stale, missing and unusable images still return unknown.
+
 The lighting names describe image color: `day` is color and `night` is
 monochrome infrared. A camera that stays in color after dark needs its color
 nighttime examples in the `day` group, alongside daylight examples.
@@ -100,8 +111,38 @@ command cannot restore the old position.
 
 Empty cached-image responses retry at the normal polling interval and still
 honor Ring's Retry-After. Other failures retain bounded exponential backoff.
+If Ring's next-image request returns 404 without a Retry-After, the helper
+also checks the latest uploaded image without forcing a second capture. It
+accepts that fallback only when its capture timestamp is newer than the last
+frame; the usual 30-second freshness check still applies. Request diagnostics
+record only allowlisted error codes and HTTP status, never response contents.
 
-## Freshness and behavior
+## Learning from unclear pictures on the Mac
+
+The Mac app's **Learning mode** asks you to label a fresh unclear picture as
+**Fully Open**, **Fully Closed**, or **Skip / Not sure**. It keeps the exact picture
+and capture time shown in the question, even if the camera has since updated.
+Partly open, moving, obstructed, or uncertain views should be skipped.
+
+Learning runs while the Mac app is open, including quietly after its main
+window is closed. Its Dock icon disappears when all windows are closed and
+returns for a learning question. Quitting the app stops questions. The iPhone
+and widgets do not show learning prompts, but use the shared improved comparison.
+The toggle in the Mac app turns learning off for the bridge. At most one question
+is created per 15 minutes, identical answered images are suppressed, and an
+unanswered picture expires after 30 minutes. Network errors, old pictures, and
+possible movement do not create questions.
+
+The app uses signed `GET /v1/learning` and `POST /v1/learning` requests. The Alexa
+key cannot access them. Labels save private mode-600 reference files beside the
+camera configuration, with an atomic configuration update and rolling backup.
+The monitor reads new references on its next image; no restart is required.
+Contradictory examples are rejected without relaxing recognition thresholds.
+The library accepts up to 60 learned examples before requiring review. A label
+never updates a past observation or sends a gate command. Newly matched fresh
+observations remain subject to the existing auto-close rules and their guards.
+
+## Camera feeds and freshness
 
 `GET /v1/position` uses the app's existing HMAC authentication and returns only
 the observation. The Alexa key does not grant access to camera routes.

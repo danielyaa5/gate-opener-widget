@@ -19,6 +19,7 @@ from gate_bridge.command_lock import CommandLock
 from gate_bridge.config import Config
 from gate_bridge.device import GateBusyError, GateCommandError, GateDevice
 from gate_bridge.position import GatePositionService
+from gate_bridge.learning import GateLearningService
 
 
 LOGGER = logging.getLogger("gate_bridge")
@@ -180,6 +181,7 @@ class GateHTTPServer(ThreadingHTTPServer):
         self.idempotency = IdempotencyGuard()
         self.gate = GateDevice(config)
         self.position = GatePositionService(config.camera_config)
+        self.learning = GateLearningService(config.camera_config)
         self.commands = CommandLock(config.camera_config)
         self.auto_close_config = config.auto_close_config
         # Do not poll the Tuya controller in the background. This model becomes
@@ -242,18 +244,19 @@ class GateRequestHandler(BaseHTTPRequestHandler):
         if path == "/health":
             self._json(HTTPStatus.OK, {"status": "ok"})
             return
-        if path not in {"/v1/status", "/v1/position", "/v1/camera"}:
+        if path not in {"/v1/status", "/v1/position", "/v1/camera", "/v1/learning"}:
             self._json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
 
         request_id = self._request_id()
         try:
             client = self._authenticate(b"")
-            if path in {"/v1/position", "/v1/camera"}:
+            if path in {"/v1/position", "/v1/camera", "/v1/learning"}:
                 if client != DEFAULT_CLIENT:
                     self._json(HTTPStatus.FORBIDDEN, {"error": "camera_access_not_allowed"})
                     return
-                payload = self.server.position.camera_preview() if path == "/v1/camera" else self.server.position.observe()
+                payload = (self.server.learning.candidate() if path == "/v1/learning" else
+                           self.server.position.camera_preview() if path == "/v1/camera" else self.server.position.observe())
                 self._json(HTTPStatus.OK, payload)
                 return
             status = self.server.gate.status()
@@ -265,9 +268,14 @@ class GateRequestHandler(BaseHTTPRequestHandler):
         except GateCommandError as exc:
             LOGGER.error("request_id=%s status device failed: %s", request_id, exc)
             self._json(HTTPStatus.BAD_GATEWAY, {"error": str(exc)})
+        except (OSError, ValueError, KeyError, TypeError):
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Camera learning is temporarily unavailable"})
 
     def do_POST(self) -> None:
         path = urlsplit(self.path).path
+        if path == "/v1/learning":
+            self._receive_learning_answer()
+            return
         if path == "/v1/client-log":
             self._receive_client_logs()
             return
@@ -346,6 +354,20 @@ class GateRequestHandler(BaseHTTPRequestHandler):
                 exc,
             )
             self._json(HTTPStatus.BAD_GATEWAY, {"error": str(exc)})
+
+    def _receive_learning_answer(self) -> None:
+        try:
+            body = self._body()
+            if self._authenticate(body) != DEFAULT_CLIENT:
+                self._json(HTTPStatus.FORBIDDEN, {"error": "camera_access_not_allowed"})
+                return
+            self._json(HTTPStatus.OK, self.server.learning.answer(json.loads(body)))
+        except AuthenticationError:
+            self._json(HTTPStatus.UNAUTHORIZED, {"error": "Invalid authentication"})
+        except ValueError as exc:
+            self._json(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+        except (OSError, KeyError, TypeError):
+            self._json(HTTPStatus.SERVICE_UNAVAILABLE, {"error": "Could not save the camera example"})
 
     def _receive_client_logs(self) -> None:
         request_id = self._request_id()

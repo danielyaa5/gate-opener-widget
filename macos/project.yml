@@ -6,7 +6,7 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     CODE_SIGN_STYLE: Automatic
-    CURRENT_PROJECT_VERSION: 15
+    CURRENT_PROJECT_VERSION: 17
     MARKETING_VERSION: 1.0.0
     # Pass DEVELOPMENT_TEAM and your own GATE_BUNDLE_PREFIX when building.
     GATE_BUNDLE_PREFIX: org.example

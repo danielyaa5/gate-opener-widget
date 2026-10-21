@@ -13,6 +13,7 @@ The command replaces these files under `docs/images/`:
 
 - `mac-app.png`: app screenshot with camera status, latest picture and Ring link.
 - `mac-widget.png`: desktop widget screenshot.
+- `learning-mode.png`: the Mac learning dialog with a fictional camera picture.
 - `demo.gif`: looping README preview.
 - `demo.mp4`: H.264 video showing Closed, a sent command, possible movement, Open, and Closed again.
 - `demo-media.json`: source and output hashes, dimensions, duration and provenance.
@@ -20,6 +21,16 @@ The command replaces these files under `docs/images/`:
 Use `--output /path/to/review` to review new assets before replacing the committed
 ones. Open the PNGs and watch the MP4 before committing. The source hashes in the
 manifest identify exactly which presentation code was used.
+
+To regenerate only the learning screenshot, without FFmpeg or changing the video:
+
+```sh
+.venv/bin/python scripts/generate_demo_media.py --learning-only
+```
+
+This also writes `learning-media.json` with source and output hashes. The dialog
+uses the production SwiftUI presentation with inert state/actions; it does not
+start the live learning controller, poll a bridge, or read saved camera pictures.
 
 The script compiles the app's real `GateDashboardView` and `GateWidgetView`, renders
 them offscreen with SwiftUI `ImageRenderer`, and encodes the resulting frames.

@@ -29,10 +29,10 @@ def run(command: list[str], **kwargs) -> None:
     subprocess.run(command, check=True, **kwargs)
 
 
-def generate(output: Path) -> None:
+def generate(output: Path, *, learning_only: bool = False) -> None:
     if sys.platform != "darwin":
         raise SystemExit("This recorder requires macOS and Xcode's command-line tools.")
-    for tool in ("swiftc", "ffmpeg", "ffprobe"):
+    for tool in (("swiftc",) if learning_only else ("swiftc", "ffmpeg", "ffprobe")):
         if shutil.which(tool) is None:
             raise SystemExit(f"Missing {tool}. Install Xcode tools and ffmpeg before recording.")
     try:
@@ -44,7 +44,8 @@ def generate(output: Path) -> None:
                "ios/GateOpener/Shared/GatePosition.swift", "ios/GateOpener/Shared/GateActionFeedback.swift",
                "ios/GateOpener/Shared/GateSettings.swift", "ios/GateOpener/Shared/GateAPIClient.swift",
                "ios/GateOpener/Shared/OpenGateIntent.swift", "scripts/generate_demo_media.swift",
-               "scripts/generate_demo_media.py", "scripts/demo_camera.py"]
+               "scripts/generate_demo_media.py", "scripts/demo_camera.py",
+               "macos/GateOpenerMac/GateLearningController.swift"]
     with tempfile.TemporaryDirectory(prefix="gate-demo-media-") as directory:
         work = Path(directory)
         # Compile the actual presentation views, omitting app lifecycle and preview macros.
@@ -52,9 +53,32 @@ def generate(output: Path) -> None:
         (work / "Dashboard.swift").write_text("import AppKit\nimport SwiftUI\nstruct GateDashboardView: View" + dashboard)
         widget = (ROOT / sources[1]).read_text().split("struct GateWidgetView: View", 1)[1].split("#Preview", 1)[0]
         (work / "Widget.swift").write_text("import SwiftUI\nimport WidgetKit\nstruct GateWidgetView: View" + widget)
+        learning = (ROOT / sources[-1]).read_text()
+        prompt = learning.split("private struct GateLearningPrompt: View", 1)[1].split("struct GateLearningSettings: View", 1)[0]
+        settings = learning.split("struct GateLearningSettings: View", 1)[1]
+        # Real presentation code, with inert state/actions instead of the live
+        # polling controller. Rendering must never open settings or a connection.
+        stub = '''import AppKit
+import SwiftUI
+@MainActor final class GateLearningController: ObservableObject {
+    static let shared = GateLearningController()
+    @Published var enabled = true
+    @Published var notice: String?
+    @Published var saving = false
+    @Published var answerError: String?
+    func answer(_ state: String) {}
+    func setEnabled(_ enabled: Bool) {}
+}
+'''
+        (work / "Learning.swift").write_text(stub + "private struct GateLearningPrompt: View" + prompt
+            + "struct GateLearningSettings: View" + settings + '''
+@MainActor func demoLearningPrompt(_ candidate: GateLearningCandidate) -> some View {
+    GateLearningPrompt(candidate: candidate, controller: GateLearningController.shared)
+}
+''')
         binary = work / "render"
         print("Rendering the real app and widget views with fictional camera data…", flush=True)
-        run(["swiftc", "-parse-as-library", "-swift-version", "6", str(work / "Dashboard.swift"), str(work / "Widget.swift"),
+        run(["swiftc", "-parse-as-library", "-swift-version", "6", str(work / "Dashboard.swift"), str(work / "Widget.swift"), str(work / "Learning.swift"),
              *[str(ROOT / name) for name in sources[2:8]], "-o", str(binary)])
         # SwiftUI's relative Text uses the real clock, even in a time-frozen view.
         # Seed fresh timestamps after compiling, with no future-dated video frames.
@@ -68,7 +92,25 @@ def generate(output: Path) -> None:
                            "preview": preview(picture, date - 2)})
             elapsed += duration
         (work / "frames.json").write_text(json.dumps(frames))
-        run([str(binary), str(work)])
+        run([str(binary), str(work)] + (["--learning-only"] if learning_only else []))
+        # ImageRenderer may attach EXIF even to a generated PNG. Public demo
+        # images retain pixels only, without capture/device metadata.
+        from PIL import Image
+        for path in work.glob("*.png"):
+            with Image.open(path) as rendered:
+                rendered.save(path.with_suffix(".clean.png"), format="PNG", exif=b"")
+            path.with_suffix(".clean.png").replace(path)
+        if learning_only:
+            outputs = ["learning-mode.png"]
+            report = {"description": "Production learning-dialog view rendered offscreen with a fictional camera image and inert actions; no live settings, images or network access.",
+                      "sources": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sources},
+                      "outputs": {name: hashlib.sha256((work / name).read_bytes()).hexdigest() for name in outputs}}
+            (work / "learning-media.json").write_text(json.dumps(report, indent=2) + "\n")
+            output.mkdir(parents=True, exist_ok=True)
+            for name in [*outputs, "learning-media.json"]:
+                shutil.copy2(work / name, output / name)
+            print(f"Saved learning screenshot and source hashes in {output}")
+            return
         shutil.copy2(work / "closed.png", work / "mac-app.png")
 
         sequence = "".join(f"file '{name}.png'\nduration {duration}\n" for name, *_, duration in POSES)
@@ -86,7 +128,7 @@ def generate(output: Path) -> None:
         if stream["codec_name"] != "h264" or abs(float(metadata["format"]["duration"]) - elapsed) > 0.1:
             raise RuntimeError("Generated demo did not validate")
 
-        outputs = ["mac-app.png", "mac-widget.png", "demo.gif", "demo.mp4"]
+        outputs = ["mac-app.png", "mac-widget.png", "learning-mode.png", "demo.gif", "demo.mp4"]
         report = {"description": "Offscreen renders of production SwiftUI views with fictional camera images and scripted states.",
                   "duration_seconds": elapsed, "video_dimensions": [stream["width"], stream["height"]],
                   "sources": {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sources},
@@ -103,8 +145,9 @@ def generate(output: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "docs/images", help="Destination (default: docs/images)")
+    parser.add_argument("--learning-only", action="store_true", help="Render just the learning dialog, without regenerating video or other screenshots")
     args = parser.parse_args()
-    generate(args.output.resolve())
+    generate(args.output.resolve(), learning_only=args.learning_only)
 
 
 if __name__ == "__main__":

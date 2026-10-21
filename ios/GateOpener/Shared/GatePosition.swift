@@ -1,6 +1,32 @@
 import Foundation
 import Security
 
+struct GateLearningStatus: Decodable, Sendable {
+    let enabled: Bool
+    let candidate: GateLearningCandidate?
+}
+
+struct GateLearningCandidate: Decodable, Identifiable, Sendable {
+    let id: String
+    let capturedAt: TimeInterval
+    let imageBase64: String
+    let cameraName: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case capturedAt = "captured_at"
+        case imageBase64 = "image_base64"
+        case cameraName = "camera_name"
+    }
+
+    var imageData: Data? {
+        guard capturedAt.isFinite, imageBase64.utf8.count <= 7_000_000,
+              let data = Data(base64Encoded: imageBase64), data.count <= 5_000_000,
+              data.starts(with: [0xff, 0xd8]) else { return nil }
+        return data
+    }
+}
+
 /// Foreground-only camera preview. Images are never persisted in widget settings.
 struct GateCameraPreview: Decodable, Sendable {
     let cameraName: String

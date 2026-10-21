@@ -108,6 +108,35 @@ class GateServerTests(unittest.TestCase):
             preview.assert_called_once()
         self.assertEqual(self.server.gate.pulses, 0)
 
+    def test_learning_routes_require_app_authentication_and_never_touch_hardware(self) -> None:
+        with patch.object(self.server.learning, "candidate", return_value={"enabled":True,"candidate":None}) as candidate:
+            for authorized, alexa, code in [(False, False, 401), (True, True, 403)]:
+                with self.assertRaises(urllib.error.HTTPError) as caught:
+                    self.position_request(path="/v1/learning", authorized=authorized, alexa=alexa)
+                self.assertEqual(caught.exception.code, code)
+                candidate.assert_not_called()
+            with self.position_request(path="/v1/learning") as response:
+                self.assertEqual(json.load(response), {"enabled":True,"candidate":None})
+        body = json.dumps({"candidate_id":"example","state":"open"}).encode()
+        with patch.object(self.server.learning, "answer", return_value={"result":"saved"}) as answer:
+            for valid, client, secret, code in [(False,None,None,401),(True,"alexa",self.alexa_secret,403)]:
+                with self.assertRaises(urllib.error.HTTPError) as caught:
+                    self.request("/v1/learning",body,valid_signature=valid,client=client,secret=secret)
+                self.assertEqual(caught.exception.code, code)
+                answer.assert_not_called()
+            with patch.object(self.server.gate,"status",side_effect=AssertionError("No controller query")):
+                with self.request("/v1/learning",body) as response:
+                    self.assertEqual(json.load(response), {"result":"saved"})
+            answer.assert_called_once_with(json.loads(body))
+        self.assertEqual(self.server.gate.pulses,0)
+
+    def test_learning_rejects_bad_answers_without_pulsing(self) -> None:
+        with patch.object(self.server.learning, "answer", side_effect=ValueError("Expired picture")):
+            with self.assertRaises(urllib.error.HTTPError) as caught:
+                self.request("/v1/learning",b'{}')
+            self.assertEqual(caught.exception.code,400)
+        self.assertEqual(self.server.gate.pulses,0)
+
     def request(
         self,
         path: str,
