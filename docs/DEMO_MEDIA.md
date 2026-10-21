@@ -73,3 +73,12 @@ The README and blog use the same `docs/images/architecture.svg`; it contains no
 private endpoint, device identifiers or credentials. The original belt-repair
 photo, `elite-belt-drive.jpg`, was supplied for the article, resized for web use
 and saved without EXIF metadata. Neither asset comes from the live Ring camera.
+
+
+## Lock Screen illustration
+
+Run `python3 scripts/generate_lockscreen.py` on macOS to regenerate
+`docs/images/lock-screen-control.svg`. It uses fictional wallpaper and sample
+information, with the same `door.garage.open` SF Symbol as the production control.
+It does not use a phone screenshot, contact a service, or send a gate command.
+The arrow and labels are part of the SVG so they stay sharp at any size.

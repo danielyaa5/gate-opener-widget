@@ -16,6 +16,12 @@ record of how the pieces fit together.
 
 *Inside the old operator: the belt connects the motor to the gearbox.*
 
+<p align="center">
+  <img src="docs/images/lock-screen-control.svg" width="360" alt="Illustrative iPhone Lock Screen with an arrow pointing to the gate control at the bottom right">
+</p>
+
+*Open or close the gate from the Lock Screen. Illustration using the app’s actual gate-control icon.*
+
 [Read this on the website](https://danielyaa5.github.io/gate-opener-widget/) ·
 [Technical setup](docs/SETUP.md)
 

@@ -35,9 +35,11 @@
     @media (max-width:480px) { .hardware-shots { grid-template-columns:1fr; } }
     .shots .app { width:300px; }
     .shots .widget { width:180px; }
-    .hero-shot { margin:28px 0; }
-    .hero-shot img { display:block; width:100%; height:auto; aspect-ratio:16 / 10; object-fit:cover; object-position:50% 45%; border:1px solid var(--line); border-radius:14px; }
-    @media (max-width:480px) { .hero-shot img { aspect-ratio:4 / 3; } }
+    .intro-media { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:28px 0; align-items:start; }
+    .intro-media figure { margin:0; min-width:0; }
+    .intro-media img { display:block; width:100%; height:auto; aspect-ratio:4 / 5; object-fit:cover; border:1px solid var(--line); border-radius:14px; }
+    .hero-shot img { object-position:50% 45%; }
+    @media (max-width:560px) { .intro-media { grid-template-columns:1fr; gap:24px; } .hero-shot img { aspect-ratio:4 / 3; } .lock-screen-shot { width:100%; max-width:360px; justify-self:center; } }
     .architecture-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .learning-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .release-note { border-left:3px solid var(--line); padding-left:18px; }
@@ -57,10 +59,16 @@
         <h1>A widget for my gate</h1>
         <p class="lede">This started with wanting a button for my gate on my Mac and iPhone. It grew into a small app that also shows whether the gate looks open or closed, the latest camera picture, and a couple of rules for closing it when I forget.</p>
         <p>Smart Life already controlled the gate, but I found the app buggy. I built this around the hardware I already have. I'm sharing the source and these notes as a record of how the pieces fit together.</p>
-        <figure class="hero-shot">
-          <a href="images/elite-belt-drive.jpg"><img src="images/elite-belt-drive.jpg" width="1800" height="2400" fetchpriority="high" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox"></a>
-          <figcaption>Inside the old operator: the belt connects the motor to the gearbox.</figcaption>
-        </figure>
+        <div class="intro-media">
+          <figure class="hero-shot">
+            <a href="images/elite-belt-drive.jpg"><img src="images/elite-belt-drive.jpg" width="1800" height="2400" fetchpriority="high" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox"></a>
+            <figcaption>Inside the old operator: the belt connects the motor to the gearbox.</figcaption>
+          </figure>
+          <figure class="lock-screen-shot">
+            <a href="images/lock-screen-control.svg"><img src="images/lock-screen-control.svg" width="720" height="900" alt="Illustrative iPhone Lock Screen with an arrow pointing to the gate control at the bottom right"></a>
+            <figcaption>Open or close the gate from the Lock Screen. Illustration using the app’s actual gate-control icon.</figcaption>
+          </figure>
+        </div>
         <p class="links"><a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/SETUP.md">Technical setup</a></p>
       </header>
 
