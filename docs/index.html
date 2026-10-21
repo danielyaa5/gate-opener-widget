@@ -35,7 +35,9 @@
     @media (max-width:480px) { .hardware-shots { grid-template-columns:1fr; } }
     .shots .app { width:300px; }
     .shots .widget { width:180px; }
-    .repair-shot img { display:block; width:100%; max-width:480px; height:auto; margin:auto; border:1px solid var(--line); border-radius:12px; }
+    .hero-shot { margin:28px 0; }
+    .hero-shot img { display:block; width:100%; height:auto; aspect-ratio:16 / 10; object-fit:cover; object-position:50% 45%; border:1px solid var(--line); border-radius:14px; }
+    @media (max-width:480px) { .hero-shot img { aspect-ratio:4 / 3; } }
     .architecture-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .learning-shot img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:12px; }
     .release-note { border-left:3px solid var(--line); padding-left:18px; }
@@ -54,6 +56,10 @@
         <p class="byline">Daniel Yakobian · October 2026</p>
         <h1>A widget for my gate</h1>
         <p class="lede">This started with wanting a button for my gate on my Mac and iPhone. It grew into a small app that also shows whether the gate looks open or closed, the latest camera picture, and a couple of rules for closing it when I forget.</p>
+        <figure class="hero-shot">
+          <a href="images/elite-belt-drive.jpg"><img src="images/elite-belt-drive.jpg" width="1800" height="2400" fetchpriority="high" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox"></a>
+          <figcaption>Inside the old operator: the belt connects the motor to the gearbox.</figcaption>
+        </figure>
         <p>Smart Life already controlled the gate, but I found the app buggy. I built this around the hardware I already have. I'm sharing the source and these notes as a record of how the pieces fit together.</p>
         <p class="links"><a href="https://github.com/danielyaa5/gate-opener-widget">Source on GitHub</a> · <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/SETUP.md">Technical setup</a></p>
       </header>
@@ -62,10 +68,6 @@
         <h2>Starting with the hardware</h2>
         <p>I started with a broken, 30-year-old gate and an <strong>Elite SL-3000 / SL-3000UL sliding-gate operator</strong>. I kept that hardware and added an <strong>Aubric Smart WiFi Garage Door Opener Remote Controller</strong>, a Tuya / Smart Life accessory sold for garage doors. <a href="https://www.amazon.com/dp/B07QG7RGFW">This is the Amazon listing from my order</a> (ASIN <code>B07QG7RGFW</code>). That's a plain product link, not an affiliate link.</p>
         <p>Before any software, I got the gate moving again by replacing the drive belt. A $10 belt was enough to keep the old motor and gearbox going; the Wi-Fi controller was a separate addition.</p>
-        <figure class="repair-shot">
-          <a href="images/elite-belt-drive.jpg"><img src="images/elite-belt-drive.jpg" width="1800" height="2400" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox"></a>
-          <figcaption>Inside the old operator: the belt connects the motor to the gearbox.</figcaption>
-        </figure>
         <p>I connected the Aubric controller's two control wires directly to the gate's control-board terminals. The approach is a normally-open dry-contact trigger: a brief relay closure acts like pressing a button. The existing gate controller still handles the motor and movement; the current software sends a half-second pulse rather than holding the input on.</p>
         <figure>
           <div class="hardware-shots">
