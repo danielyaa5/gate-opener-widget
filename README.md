@@ -6,15 +6,15 @@ This started with wanting a button for my gate on my Mac and iPhone. It grew int
 a small app that also shows whether the gate looks open or closed, the latest
 camera picture, and a couple of rules for closing it when I forget.
 
+Smart Life already controlled the gate, but I found the app buggy. I built this
+around the hardware I already have. I'm sharing the source and these notes as a
+record of how the pieces fit together.
+
 <p align="center">
   <img src="docs/images/elite-belt-drive.jpg" width="480" alt="Inside the Elite gate operator, showing the drive belt between the motor and gearbox">
 </p>
 
 *Inside the old operator: the belt connects the motor to the gearbox.*
-
-Smart Life already controlled the gate, but I found the app buggy. I built this
-around the hardware I already have. I'm sharing the source and these notes as a
-record of how the pieces fit together.
 
 [Read this on the website](https://danielyaa5.github.io/gate-opener-widget/) ·
 [Technical setup](docs/SETUP.md)
