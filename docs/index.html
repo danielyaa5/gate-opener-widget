@@ -188,6 +188,13 @@
         <p>The camera is still an estimate, and a pulse can open, close or stop the gate depending on its controller. The physical gate's obstruction sensors remain responsible for safe movement. The implementation details and limits are in the <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/AUTO_CLOSE.md">automatic-closing notes</a> and <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">security policy</a>.</p>
       </section>
 
+      <section id="ai-checks">
+        <h2>Asking AI for a second opinion</h2>
+        <p>The closing rules exposed a weakness in my own check. Each one wanted a 95% match before trusting a picture, and night pictures never got there: they scored between 78% and 94%, so the gate stayed open when it should have closed. I replaced the fixed bar with a relative one. A picture now has to look much closer to the open examples than the closed ones, or the reverse, and anything in between is still Unclear.</p>
+        <p>I also wanted to know whether a vision model could double-check it. I gave a few cheap models 25 labeled gate pictures, twice each, along with an open and a closed example. GPT-6 Luna swapped open and closed on 10 to 13 of the 50 answers while claiming 98–99% confidence. Claude Haiku 5.5 almost always said it couldn't tell. Gemini 3.8 Flash swapped 9. Cropping the picture down to the gate made every model worse. Gemini 4 Argon, given the whole frame, got all 50 right.</p>
+        <p>So Argon now runs as a silent second opinion, only when the local check is unsure. Its answer is logged and never sends a gate command. The home Mac also keeps a private 14-day archive of camera pictures to check those answers against. If Argon keeps a clean record, I plan to let it label pictures for learning mode instead of asking me. These changes run on my home Mac first and aren't in the public source yet.</p>
+      </section>
+
       <section>
         <h2>If you want to look around</h2>
         <p>The source includes the bridge, native SwiftUI apps and widgets, camera comparison, and simulated-controller tests. It's specific to this setup; another installation needs its own controller checks, wiring and calibration.</p>
