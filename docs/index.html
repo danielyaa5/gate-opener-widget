@@ -6,6 +6,44 @@
   <title>A widget for my gate · Daniel Yakobian</title>
   <meta name="description" content="Build notes on connecting a Wi-Fi controller to my gate, adding Mac and iPhone widgets, and checking its position with Ring snapshots.">
   <link rel="icon" href="images/icon.png">
+  <link rel="canonical" href="https://danielyaa5.github.io/gate-opener-widget/">
+  <meta name="author" content="Daniel Yakobian">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="A widget for my gate">
+  <meta property="og:description" content="Build notes on connecting a Wi-Fi controller to my gate, adding Mac and iPhone widgets, and checking its position with Ring snapshots.">
+  <meta property="og:url" content="https://danielyaa5.github.io/gate-opener-widget/">
+  <meta property="og:image" content="https://danielyaa5.github.io/gate-opener-widget/images/learning-mode.png">
+  <meta property="article:published_time" content="2026-10-20">
+  <meta name="twitter:card" content="summary_large_image">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "A widget for my gate",
+      "description": "Build notes on connecting a Wi-Fi controller to my gate, adding Mac and iPhone widgets, and checking its position with Ring snapshots.",
+      "url": "https://danielyaa5.github.io/gate-opener-widget/",
+      "mainEntityOfPage": "https://danielyaa5.github.io/gate-opener-widget/",
+      "image": "https://danielyaa5.github.io/gate-opener-widget/images/learning-mode.png",
+      "datePublished": "2026-10-20",
+      "inLanguage": "en",
+      "author": {
+        "@type": "Person",
+        "name": "Daniel Yakobian",
+        "url": "https://danielyakobian.com/"
+      },
+      "publisher": {
+        "@type": "Person",
+        "name": "Daniel Yakobian",
+        "url": "https://danielyakobian.com/"
+      },
+      "about": {
+        "@type": "SoftwareSourceCode",
+        "name": "Gate Opener",
+        "codeRepository": "https://github.com/danielyaa5/gate-opener-widget",
+        "license": "https://github.com/danielyaa5/gate-opener-widget/blob/master/LICENSE"
+      }
+    }
+  </script>
   <style>
     :root { color-scheme: light dark; --bg:#f7f3ea; --surface:#fff; --text:#25231f; --muted:#686259; --line:#ded7ca; --accent:#245bc7; }
     @media (prefers-color-scheme:dark) { :root { --bg:#191813; --surface:#24221b; --text:#efebe1; --muted:#b7afa0; --line:#403b30; --accent:#98b8ff; } }
@@ -55,7 +93,7 @@
     <div class="masthead"><img src="images/icon.png" alt=""><span>Gate Opener / Build notes</span></div>
     <article>
       <header>
-        <p class="byline">Daniel Yakobian · October 2026</p>
+        <p class="byline"><a href="https://danielyakobian.com/" rel="author">Daniel Yakobian</a> · October 2026</p>
         <h1>A widget for my gate</h1>
         <p class="lede">This started with wanting a button for my gate on my Mac and iPhone. It grew into a small app that shows the latest camera picture, checks whether the gate looks open or closed, and closes it when I forget. The latest addition uses DoorDash texts and an order-address check to give a driver access when a delivery is coming home.</p>
         <p>Smart Life already controlled the gate, but I found the app buggy. I built this around the hardware I already have. I'm sharing the source and these notes as a record of how the pieces fit together.</p>
@@ -148,6 +186,13 @@
         <p>Once I had a separate camera observation, I added an overnight rule for a gate left open too long, and a distance rule using device observations from TagTracker on the home Mac.</p>
         <p>Both need fresh evidence that the gate is open before attempting a close. The distance rule gets one attempt per trip and only resets after a confirmed return home. Attempts are saved before sending, so restarting the service or losing a response doesn't turn into repeated button presses. These rules are optional and disabled in an unconfigured installation.</p>
         <p>The camera is still an estimate, and a pulse can open, close or stop the gate depending on its controller. The physical gate's obstruction sensors remain responsible for safe movement. The implementation details and limits are in the <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/docs/AUTO_CLOSE.md">automatic-closing notes</a> and <a href="https://github.com/danielyaa5/gate-opener-widget/blob/master/SECURITY.md">security policy</a>.</p>
+      </section>
+
+      <section id="ai-checks">
+        <h2>Asking AI for a second opinion</h2>
+        <p>The closing rules exposed a weakness in my own check. Each one wanted a 95% match before trusting a picture, and night pictures never got there: they scored between 78% and 94%, so the gate stayed open when it should have closed. I replaced the fixed bar with a relative one. A picture now has to look much closer to the open examples than the closed ones, or the reverse, and anything in between is still Unclear.</p>
+        <p>I also wanted to know whether a vision model could double-check it. I gave a few cheap models 25 labeled gate pictures, twice each, along with an open and a closed example. GPT-6 Luna swapped open and closed on 10 to 13 of the 50 answers while claiming 98–99% confidence. Claude Haiku 5.5 almost always said it couldn't tell. Gemini 3.8 Flash swapped 9. Cropping the picture down to the gate made every model worse. Gemini 4 Argon, given the whole frame, got all 50 right.</p>
+        <p>So Argon now runs as a silent second opinion, only when the local check is unsure. Its answer is logged and never sends a gate command. The home Mac also keeps a private 14-day archive of camera pictures to check those answers against. If Argon keeps a clean record, I plan to let it label pictures for learning mode instead of asking me. These changes run on my home Mac first and aren't in the public source yet.</p>
       </section>
 
       <section>
