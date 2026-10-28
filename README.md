@@ -2,9 +2,7 @@
 
 *Gate Opener · Build notes by Daniel Yakobian · October 2026*
 
-This started with wanting a button for my gate on my Mac and iPhone. It grew into
-a small app that also shows whether the gate looks open or closed, the latest
-camera picture, and a couple of rules for closing it when I forget.
+This started with wanting a button for my gate on my Mac and iPhone. It grew into a small app that shows the latest camera picture, checks whether the gate looks open or closed, and closes it when I forget. The latest addition uses DoorDash texts and an order-address check to give a driver access when a delivery is coming home.
 
 Smart Life already controlled the gate, but I found the app buggy. I built this
 around the hardware I already have. I'm sharing the source and these notes as a
@@ -148,6 +146,18 @@ The camera is still an estimate, and a pulse can open, close or stop the gate
 depending on its controller. The physical gate's obstruction sensors remain
 responsible for safe movement. The implementation details and limits are in the
 [automatic-closing notes](docs/AUTO_CLOSE.md) and [security policy](SECURITY.md).
+
+
+## Giving a delivery driver access
+
+I also added DoorDash delivery access. The first order-confirmation text starts an address check against the signed-in DoorDash website in Safari on the home Mac. Ordering food does not always mean I am ordering it home, so the text alone is not enough.
+
+When the approaching-driver text arrives, the watcher checks the address again and matches it to the order. It requests one opening only when the order is verified for home and a fresh camera observation confirms the gate is closed. Missing, ambiguous or unreadable order details cause it to skip automatic access.
+
+The delivery gets a 15-minute window. At the end, closing still requires fresh camera evidence that the gate is open. Duplicate texts and uncertain command responses do not cause repeated button presses. If the gate closes early, that delivery window ends.
+
+This is enabled on my home server. Safari must stay signed in with a window open. The parser, duplicate handling and simulated opening-to-closing flow have automated tests, but the first real delivery through the complete flow is still pending.
+
 
 ## If you want to look around
 
