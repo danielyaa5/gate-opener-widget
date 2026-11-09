@@ -33,9 +33,11 @@ history. Each release has two downloads: the notarized Mac app and the source ZI
    `GateOpener-mac.zip`, `dist/gate-opener-source.zip` and its `.zip.sha256`. Use the changelog
    entry as the release notes.
 
-The website is `docs/index.html` with its images in `docs/images/`, served by GitHub Pages from
-the `docs` folder. Demo images must come from `scripts/demo_bridge.py`, never a real bridge, and
-must not show anything personal on the desktop.
+The build-notes post lives on danielyakobian.com at `blog/gate-opener-widget.html` in the
+`danielyaa5/danielyaa5.github.io` repository, with its own copies of the images. GitHub Pages
+still serves the `docs` folder, where `docs/index.html` only forwards to that post; the README
+uses the images in `docs/images/`. Demo images must come from `scripts/demo_bridge.py`, never a
+real bridge, and must not show anything personal on the desktop.
 
 The source ZIP is reproducible for identical source and Python/zlib implementation.
 `SHA256SUMS` inside it covers every file except itself; the separate `.zip.sha256` covers the

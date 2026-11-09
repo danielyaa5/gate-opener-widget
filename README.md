@@ -20,7 +20,7 @@ record of how the pieces fit together.
 
 *Open or close the gate from the Lock Screen. Illustration using the app’s actual gate-control icon.*
 
-[Read this on the website](https://danielyaa5.github.io/gate-opener-widget/) ·
+[Read this on the website](https://danielyakobian.com/blog/gate-opener-widget.html) ·
 [Technical setup](docs/SETUP.md)
 
 ## Starting with the hardware
